@@ -5,16 +5,16 @@ namespace Jude
     /// </summary>
     public class Space
     {
-        private string _name;
+        public string Name { get; set; }
         
         public Space(string name)
         {
-            _name = name;
+            Name = name;
         }
 
-        public string GetName()
+        public virtual void OnLanded(Player player)
         {
-            return _name;
+            // this might not be needed here since theres no default for on landed
         }
     }
 }

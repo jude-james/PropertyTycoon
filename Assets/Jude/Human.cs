@@ -1,20 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Jude
 {
-    public class Human : MonoBehaviour, IPlayer
+    public class Human : Player
     {
-        // Code for awaiting user input in human
+        // Code for awaiting user input
         
-        public string Name { get; set; }
-        public int Money { get; set; }
-        public List<Property> OwnedProperty { get; set; }
-        public Space CurrentSpace { get; set; }
-
-        public void StartTurn()
+        public override void StartTurn()
         {
             Debug.Log(Name + " must make a decision! Roll dice, mortgage or trade or ...");
+        }
+
+        public Human(string name, int money) : base(name, money)
+        {
         }
     }
 }

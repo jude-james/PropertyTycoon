@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Jude
 {
     /// <summary>
-    /// A struct that stores all data needed for game to start
+    /// A struct that stores all the data from external files needed
     /// </summary>
     public struct GameData
     {
