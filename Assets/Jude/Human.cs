@@ -10,9 +10,5 @@ namespace Jude
         {
             Debug.Log(Name + " must make a decision! Roll dice, mortgage or trade or ...");
         }
-
-        public Human(string name, int money) : base(name, money)
-        {
-        }
     }
 }

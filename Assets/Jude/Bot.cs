@@ -10,9 +10,5 @@ namespace Jude
         {
             Debug.Log(Name + " makes automated decision");
         }
-
-        public Bot(string name, int money) : base(name, money)
-        {
-        }
     }
 }

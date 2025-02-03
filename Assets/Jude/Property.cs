@@ -1,5 +1,6 @@
 namespace Jude
 {
+    [System.Serializable]
     public class Property : Space
     {
         public Player OwnedBy { get; set; } // initially owned by the bank, null can be the bank for now

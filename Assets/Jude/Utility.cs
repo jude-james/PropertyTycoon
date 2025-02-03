@@ -6,7 +6,7 @@ namespace Jude
         {
         }
         
-        public override void OnLanded(Player player)
+        public void OnLanded(Player player, int diceRoll) // Amount taken from player depends on the dice they rolled, this is temporary
         {
         }
     }

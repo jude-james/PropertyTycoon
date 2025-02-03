@@ -1,11 +1,14 @@
+using UnityEngine;
+
 namespace Jude
 {
     /// <summary>
     /// Space is the base class that all squares on the board derive from 
     /// </summary>
+    [System.Serializable]
     public class Space
     {
-        public string Name { get; set; }
+        [field: SerializeField] public string Name { get; set; }
         
         public Space(string name)
         {

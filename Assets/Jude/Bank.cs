@@ -5,14 +5,13 @@ namespace Jude
 {
     public class Bank
     {
-        public int Money { get; set; }
+        // public int Money { get; set; } // Not needed as bank has endless money in digital versions 
         public int Houses { get; set; }
         public int Hotels { get; set; }
         public List<Property> TitleDeeds { get; set; } 
         
-        public Bank(int money, int houses, int hotels, List<Property> titleDeeds)
+        public Bank(int houses, int hotels, List<Property> titleDeeds)
         {
-            Money = money;
             Houses = houses;
             Hotels = hotels;
             TitleDeeds = titleDeeds;
@@ -21,7 +20,6 @@ namespace Jude
         public void Transaction(Player player, int amount)
         {
             throw new NotImplementedException();
-            // Money -= amount;
             // player.Money += amount;
         }
     }
