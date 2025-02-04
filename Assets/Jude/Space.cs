@@ -1,20 +1,23 @@
+using UnityEngine;
+
 namespace Jude
 {
     /// <summary>
     /// Space is the base class that all squares on the board derive from 
     /// </summary>
+    [System.Serializable]
     public class Space
     {
-        private string _name;
+        [field: SerializeField] public string Name { get; set; }
         
         public Space(string name)
         {
-            _name = name;
+            Name = name;
         }
 
-        public string GetName()
+        public virtual void OnLanded(Player player)
         {
-            return _name;
+            // this might not be needed here since theres no default for on landed
         }
     }
 }

@@ -1,13 +1,14 @@
 namespace Jude
 {
+    [System.Serializable]
     public class Property : Space
     {
-        //TODO override constructor with property specific info such as rent prices for number houses
-        // int current price...
-        // bool owned...
-        public Property(string name) : base(name)
+        public Player OwnedBy { get; set; } // initially owned by the bank, null can be the bank for now
+        public int Cost { get; set; }
+        
+        public Property(string name, int cost) : base(name)
         {
-            
+            Cost = cost;
         }
     }
 }

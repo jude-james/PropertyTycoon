@@ -32,13 +32,15 @@ namespace Jude
             const int nameRow = 1;
             const int groupRow = 3;
             const int canBeBoughtRow = 5;
+            const int costRow = 7;
+            const int initialRentRow = 8;
+            const int improvedRentRowStart = 10;
+            const int improvedRentRowEnd = 14;
 
             var spaces = new Space[boardSpaces];
             var properties = new List<Property>();
             
             var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
-            
-            // TODO continue filtering through varies types of spaces
             
             for (int i = 0; i < boardSpaces; i++)
             {
@@ -48,23 +50,55 @@ namespace Jude
                 
                 if (canBeBought == "Yes")
                 {
+                    int cost = int.Parse(boardDataMatrix[i + startColumn][costRow]);
+                    
                     if (group == "Station")
                     {
-                        spaces[i] = new Station(name);
+                        spaces[i] = new Station(name, cost);
                     }
                     else if (group == "Utilities")
                     {
-                        spaces[i] = new Utility(name);
+                        spaces[i] = new Utility(name, cost);
                     }
                     else
                     {
-                        spaces[i] = new Site(name);
+                        var initialRent = int.Parse(boardDataMatrix[i + startColumn][initialRentRow]);
+                        var improvedRent = new int[5];
+                        for (int j = improvedRentRowStart; j <= improvedRentRowEnd; j++)
+                        {
+                            var rent = int.Parse(boardDataMatrix[i + startColumn][j]);
+                            improvedRent[j - improvedRentRowStart] = rent;
+                        }
+
+                        var houseHotelCost = 0;
+                        switch (group)
+                        {
+                            case "Brown":
+                            case "Blue":
+                                houseHotelCost = 50;
+                                break;
+                            case "Purple":
+                            case "Orange":
+                                houseHotelCost = 100;
+                                break;
+                            case "Red":
+                            case "Yellow":
+                                houseHotelCost = 150;
+                                break;
+                            case "Green":
+                            case "Deep Blue":
+                                houseHotelCost = 200;
+                                break;
+                        }
+
+                        spaces[i] = new Site(name, cost, group, initialRent, improvedRent, houseHotelCost);
                     }
                     
                     properties.Add((Property) spaces[i]);
                 }
                 else
                 {
+                    // TODO continue filtering through other types of spaces- tax space, card space, and odd ones out
                     spaces[i] = new Space(name);
                 }
             }
@@ -72,7 +106,7 @@ namespace Jude
             _gameData.Spaces = spaces;
             _gameData.Properties = properties;
         }
-
+        
         private static void InitCards()
         {
             // Hard coded values by looking at Exel spreadsheet
