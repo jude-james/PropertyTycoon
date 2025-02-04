@@ -31,10 +31,12 @@ namespace Rudy
             this.bot = bot;
         }
 
-        public void Move(int diceValue)
+        public int Move(int diceValue)
         {
-            // Board will handle finding the correct space
             currentSpace = currentSpace + diceValue;
+            return currentSpace;
+            // Returns position to allow board to handle finding the correct space and then update the UI
+            // I think that the board will only need to know the players position after movement, but if not a GetSpace function will be added
         }
 
         public void UpdateMoney(int amount)
@@ -50,8 +52,8 @@ namespace Rudy
             }
         }
 
+        public string GetName() {  return name; }
         public int GetMoney() { return money; }
-        public int GetSpace() { return currentSpace; }
         public List<Property> HeldProperties() { return ownedProperty; }
         public bool IsInJail() { return inJail; }
     }

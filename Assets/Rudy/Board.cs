@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,32 +35,53 @@ namespace Rudy
             _players[0] = new Player("cunt1", false);
             _players[1] = new Player("cunt2", false);
             // Will make a menu screen to select amount of players/bots and choose names
+
+            StartCoroutine(Game());
         }
 
-        private void Update()
+        IEnumerator Game() // This function and NextTurn are quite shitty but it's is all I could get working - It will be changed
         {
-            // way of deciding who goes first, for now will be first index
-            _currentPlayer = _players[_currentPlayerIndex % _players.Length];
+            while (true)
+            {
+                // way of deciding who goes first, for now will be first index
+                _currentPlayer = _players[_currentPlayerIndex % _players.Length];
 
-            NextTurn();
+                endTurn = false;
+                //Starts turn then waits for endTurn to become true
+                StartCoroutine(NextTurn(_currentPlayer));
+                while (true) { if (endTurn == true) { break; } yield return null; }
+                Debug.Log(_currentPlayer.GetName() + " turn over");
 
-            // once player is completely finished with turn, increment
-            _currentPlayerIndex++;
+                // once player is completely finished with turn, increment
+                _currentPlayerIndex++;
+            }
         }
 
-        private void NextTurn()
+        IEnumerator NextTurn(Player player)
         {
-            endTurn = false;
-            // 
+            // Input will be added later, for now the player will just move
+
+            // Movement
+            int landedPos = player.Move(RollDice()) % _spaces.Length;
+            Space landedSpace = _spaces[landedPos];
+            // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
+
+            Debug.Log("Landed at position: " + landedPos);
+            Debug.Log("Landed at space: " + landedSpace.GetName());
+
+            Debug.Log("Press space to end turn");
+            while (true) { if (Input.GetKeyDown(KeyCode.Space)) { yield return null; break; } yield return null;  }
+            endTurn = true;
         }
 
         private int RollDice()
         {
-            // Returns result of rolling two dice and allows current turn to end
-            endTurn = true;
+            // Returns result of rolling two dice
             int dice1 = Random.Range(1, 6);
             int dice2 = Random.Range(1, 6);
-            // Might also add screen output showing each dice value
+            Debug.Log("Dice 1: " + dice1);
+            Debug.Log("Dice 2: " + dice2);
+            // Will add screen output showing each dice value
             return dice1 + dice2;
         }
 
