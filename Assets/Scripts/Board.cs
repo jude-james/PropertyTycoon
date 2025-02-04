@@ -1,0 +1,133 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Property Tycoon board, acts as a game manager. Tracks board spaces, bank, cards, and players
+/// </summary>
+public class Board : MonoBehaviour
+{
+    [SerializeField] private Space[] spaces;
+    [SerializeField] private Player[] players;
+
+    private Bank _bank;
+
+    private Dictionary<string, string> _opportunityKnocksCardData = new();
+    private Dictionary<string, string> _potLuckCardData = new();
+    
+    private int _currentPlayerIndex = 0;
+    private Player _currentPlayer;
+
+    private bool endTurn;
+    
+    private void Start()
+    {
+        // For now this is the beginning of the game
+        var gameData = DataInitialiser.InitGameData();
+        spaces = gameData.Spaces;
+        _opportunityKnocksCardData = gameData.OpportunityKnocksCards;
+        _potLuckCardData = gameData.PotLuckCards;
+        
+        var titleDeeds = gameData.Properties;
+        _bank = new Bank(32, 12, titleDeeds);
+        
+        // For now, we will start with 2 players who are humans
+        players = new Player[2];
+        var pl1Name = "Mark";
+        var pl2Name = "Sarah";
+        
+        players[0] = new GameObject(pl1Name).AddComponent<Human>().GetComponent<Human>();
+        players[0].Name = pl1Name;
+
+        players[1] = new GameObject(pl2Name).AddComponent<Human>().GetComponent<Human>();
+        players[1].Name = pl2Name;
+        
+        foreach (var player in players)
+        {
+            player.CurrentSpace = spaces[0];
+        }
+        
+        // TODO add some sort of state machine to switch states to avoid endless if statements and booleans
+        // when in player turn state:
+        // player can roll, mortgage, trade, build
+        // once rolled and moving squares is finished, player can still mortgage, trade, build, until player chooses end turn option
+        
+        PrintValues();
+
+        StartCoroutine(Game());
+    }
+    
+    private IEnumerator Game() // This function and NextTurn are quite shitty but it's is all I could get working - It will be changed
+    {
+        while (true)
+        {
+            // loop through players
+            _currentPlayer = players[_currentPlayerIndex % players.Length];
+
+            endTurn = false;
+            //Starts turn then waits for endTurn to become true
+            StartCoroutine(NextTurn(_currentPlayer));
+            while (true) 
+            {
+                if (endTurn == true)
+                {
+                    break; 
+                } 
+                yield return null; 
+            }
+            Debug.Log(_currentPlayer.Name + " turn over");
+
+            // once player is completely finished with turn AKA they press "end turn", increment and start over
+            _currentPlayerIndex++;
+        }
+    }
+
+    private IEnumerator NextTurn(Player player)
+    {
+        // Input will be added later, for now the player will just move
+
+        // Movement
+        int landedPos = player.Move(RollDice()) % spaces.Length;
+        Space landedSpace = spaces[landedPos];
+        _currentPlayer.CurrentSpace = landedSpace;
+        // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
+
+        Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
+        Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentSpace.Name);
+
+        Debug.Log("Press space to end turn");
+        while (true) {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                yield return null; 
+                break;
+            } 
+            yield return null;  
+        }
+        endTurn = true;
+    }
+
+    private int RollDice()
+    {
+        // Returns result of rolling two dice
+        int dice1 = Random.Range(1, 6);
+        int dice2 = Random.Range(1, 6);
+        Debug.Log("Dice 1: " + dice1);
+        Debug.Log("Dice 2: " + dice2);
+        // Will add screen output showing each dice value
+        return dice1 + dice2;
+    }
+
+    private void PrintValues()
+    {
+        foreach (var keyValuePair in _opportunityKnocksCardData)
+        {
+            Debug.Log("Description:" + keyValuePair.Key + " - Action:" + keyValuePair.Value);
+        }
+        
+        foreach (var keyValuePair in _potLuckCardData)
+        {
+            Debug.Log("Description:" + keyValuePair.Key + " - Action:" + keyValuePair.Value);
+        }
+    }
+}
