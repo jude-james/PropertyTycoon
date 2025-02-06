@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Tiles;
 
 /// <summary>
 /// Reads Property Tycoon Board and Card Data matrix arrays
@@ -10,11 +11,7 @@ public static class DataInitialiser
     private const string BoardDataFileName = "PropertyTycoonBoardData(Sheet1).csv";
 
     private static GameData _gameData;
-        
-    /// <summary>
-    /// Initialises spaces and cards
-    /// </summary>
-    /// <returns> GameData struct that stores all data needed for game to start </returns>
+    
     public static GameData InitGameData()
     {
         InitSpaces();
@@ -25,7 +22,7 @@ public static class DataInitialiser
     private static void InitSpaces()
     {
         // Hard coded values by looking at Exel spreadsheet
-        const int boardSpaces = 40;
+        const int boardTiles = 40;
         const int startColumn = 4;
         const int nameRow = 1;
         const int groupRow = 3;
@@ -35,12 +32,12 @@ public static class DataInitialiser
         const int improvedRentRowStart = 10;
         const int improvedRentRowEnd = 14;
 
-        var spaces = new Space[boardSpaces];
+        var tiles = new Tile[boardTiles];
         var properties = new List<Property>();
             
         var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
             
-        for (int i = 0; i < boardSpaces; i++)
+        for (int i = 0; i < boardTiles; i++)
         {
             var name = boardDataMatrix[i + startColumn][nameRow];
             var canBeBought = boardDataMatrix[i + startColumn][canBeBoughtRow];
@@ -52,11 +49,11 @@ public static class DataInitialiser
                     
                 if (group == "Station")
                 {
-                    spaces[i] = new Station(name, cost);
+                    tiles[i] = new Station(name, cost);
                 }
                 else if (group == "Utilities")
                 {
-                    spaces[i] = new Utility(name, cost);
+                    tiles[i] = new Utility(name, cost);
                 }
                 else
                 {
@@ -89,19 +86,19 @@ public static class DataInitialiser
                             break;
                     }
 
-                    spaces[i] = new Site(name, cost, group, initialRent, improvedRent, houseHotelCost);
+                    tiles[i] = new Site(name, cost, group, initialRent, improvedRent, houseHotelCost);
                 }
                     
-                properties.Add((Property) spaces[i]);
+                properties.Add((Property) tiles[i]);
             }
             else
             {
-                // TODO continue filtering through other types of spaces- tax space, card space, and odd ones out
-                spaces[i] = new Space(name);
+                // TODO continue filtering through other types of tiles- tax space, card space, and odd ones out
+                tiles[i] = new Tile(name);
             }
         }
 
-        _gameData.Spaces = spaces;
+        _gameData.Tiles = tiles;
         _gameData.Properties = properties;
     }
         

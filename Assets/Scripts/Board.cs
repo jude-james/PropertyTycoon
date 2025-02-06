@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using Tiles;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Property Tycoon board, acts as a game manager. Tracks board spaces, bank, cards, and players
 /// </summary>
 public class Board : MonoBehaviour
 {
-    [SerializeField] private Space[] spaces;
+    [SerializeField] private Tile[] tiles;
     [SerializeField] private Player[] players;
 
     private Bank _bank;
@@ -18,13 +20,13 @@ public class Board : MonoBehaviour
     private int _currentPlayerIndex = 0;
     private Player _currentPlayer;
 
-    private bool endTurn;
+    private bool _endTurn;
     
     private void Start()
     {
         // For now this is the beginning of the game
         var gameData = DataInitialiser.InitGameData();
-        spaces = gameData.Spaces;
+        tiles = gameData.Tiles;
         _opportunityKnocksCardData = gameData.OpportunityKnocksCards;
         _potLuckCardData = gameData.PotLuckCards;
         
@@ -44,7 +46,7 @@ public class Board : MonoBehaviour
         
         foreach (var player in players)
         {
-            player.CurrentSpace = spaces[0];
+            player.CurrentTile = tiles[0];
         }
         
         // TODO add some sort of state machine to switch states to avoid endless if statements and booleans
@@ -64,12 +66,12 @@ public class Board : MonoBehaviour
             // loop through players
             _currentPlayer = players[_currentPlayerIndex % players.Length];
 
-            endTurn = false;
+            _endTurn = false;
             //Starts turn then waits for endTurn to become true
             StartCoroutine(NextTurn(_currentPlayer));
             while (true) 
             {
-                if (endTurn == true)
+                if (_endTurn == true)
                 {
                     break; 
                 } 
@@ -87,13 +89,13 @@ public class Board : MonoBehaviour
         // Input will be added later, for now the player will just move
 
         // Movement
-        int landedPos = player.Move(RollDice()) % spaces.Length;
-        Space landedSpace = spaces[landedPos];
-        _currentPlayer.CurrentSpace = landedSpace;
+        int landedPos = player.Move(RollDice()) % tiles.Length;
+        Tile landedTile = tiles[landedPos];
+        _currentPlayer.CurrentTile = landedTile;
         // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
 
         Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
-        Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentSpace.Name);
+        Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentTile.Name);
 
         Debug.Log("Press space to end turn");
         while (true) {
@@ -104,7 +106,7 @@ public class Board : MonoBehaviour
             } 
             yield return null;  
         }
-        endTurn = true;
+        _endTurn = true;
     }
 
     private int RollDice()

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using Tiles;
 
+/// <summary>
+/// Persistent bank object throughout duration of game, containing houses, hotels and list of titleDeed cards
+/// </summary>
 public class Bank
 {
-    // public int Money { get; set; } // Not needed as bank has endless money in digital versions 
     public int Houses { get; set; }
     public int Hotels { get; set; }
     public List<Property> TitleDeeds { get; set; } 
@@ -14,16 +17,15 @@ public class Bank
         TitleDeeds = titleDeeds;
     }
     
-    private void GiveMoney(Player player, int m)
+    // to be honest now we know the bank has endless money, these methods might be pointless, and if so, the bank class may be
+    // small enough to merge into the board class
+    private void GiveMoney(Player player, int amount)
     {
-        player.UpdateMoney(m);
+        player.UpdateMoney(amount);
     }
 
-    private void TakeMoney(Player player, int m)
+    private void TakeMoney(Player player, int amount)
     {
-        if (player.Money >= m)
-        {
-            player.UpdateMoney(-m);
-        }
+        player.UpdateMoney(-amount);
     }
 }
