@@ -15,9 +15,12 @@ public class Site : Property
         ImprovedRent = improvedRent;
         HouseHotelCost = houseHotelCost;
     }
-        
-    public override void OnLanded(Player player)
+    
+    public override void PayRent(Player player)
     {
+        // figure out rent based on houses, hotels and if OwnedBy also owns the set
+        player.UpdateMoney(-InitialRent); // temporary
+        OwnedBy.UpdateMoney(InitialRent);
     }
 }
     

@@ -15,6 +15,6 @@ public class Space
 
     public virtual void OnLanded(Player player)
     {
-        // this might not be needed here since theres no default for on landed
+        // this might not be needed here since theres no default for on landed, e.g. free parking and GO do nothing
     }
 }

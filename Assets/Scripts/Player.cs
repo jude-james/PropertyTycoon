@@ -4,12 +4,12 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [field: SerializeField] public string Name { get; set; }
-    [field: SerializeField] public Token Token { get; set; }
-    [field: SerializeField] public int Money { get; set; } = 1500;
-    [field: SerializeField] public List<Property> TitleDeeds { get; set; }
+    [field: SerializeField] public Token Token { get; private set; }
+    [field: SerializeField] public int Money { get; private set; } = 1500;
+    [field: SerializeField] public List<Property> TitleDeeds { get; private set; }
     [field: SerializeField] public Space CurrentSpace { get; set; }
-    [field: SerializeField] public int GetOutOfJailFreeCards { get; set; }
-    [field: SerializeField] public bool InJail { get; set; }
+    [field: SerializeField] public int GetOutOfJailFreeCards { get; private set; }
+    [field: SerializeField] public bool InJail { get; private set; }
     
     public int Houses { get; set; }
     public int Hotels { get; set; }

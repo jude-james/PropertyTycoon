@@ -9,7 +9,10 @@ public class Station : Property
     {
     }
         
-    public override void OnLanded(Player player)
+    public override void PayRent(Player player)
     {
+        // figure out rent based on how many stations OwnedBy owns
+        player.UpdateMoney(-Rent1); // temporary
+        OwnedBy.UpdateMoney(Rent1);
     }
 }
