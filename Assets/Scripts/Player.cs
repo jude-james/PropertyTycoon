@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -10,6 +11,13 @@ public class Player : MonoBehaviour
     [field: SerializeField] public Space CurrentSpace { get; set; }
     [field: SerializeField] public int GetOutOfJailFreeCards { get; set; }
     [field: SerializeField] public bool InJail { get; set; }
+
+    [field: SerializeField] public SpriteRenderer spriteR { get; set; }
+    
+
+
+
+
     
     public int Houses { get; set; }
     public int Hotels { get; set; }
@@ -36,7 +44,23 @@ public class Player : MonoBehaviour
             Money += amount;
         }
     }
+
+    
+    public void setPosition(Vector2 position)
+    {
+        transform.position = position;
+    }
+
+    //Set Player sprite, also makes the sprite go above the board
+    public void setSprite(Sprite sprite)
+    {
+        transform.AddComponent<SpriteRenderer>();
+        spriteR = transform.GetComponent<SpriteRenderer>();
+        spriteR.sortingOrder = 1;
+        spriteR.sprite = sprite;
+    }
 }
+
 
 public enum Token
 {

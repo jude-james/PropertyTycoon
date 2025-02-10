@@ -1,3 +1,4 @@
+using Unity.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -7,6 +8,7 @@ using UnityEngine;
 public class Space
 {
     [field: SerializeField] public string Name { get; set; }
+    [SerializeField] private Vector2 position;
         
     public Space(string name)
     {
@@ -16,5 +18,15 @@ public class Space
     public virtual void OnLanded(Player player)
     {
         // this might not be needed here since theres no default for on landed
+    }
+
+    public void setPosition(float x,float y)
+    {
+        position = new Vector2(x,y);
+    }
+
+    public Vector2 getPosition()
+    {
+        return position;
     }
 }
