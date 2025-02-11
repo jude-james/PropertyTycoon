@@ -1,21 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tiles;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// Property Tycoon board, acts as a game manager. Tracks board spaces, bank, cards, and players
+/// Property Tycoon board, acts as a game manager. Tracks board tiles, bank, cards, and players
 /// </summary>
 public class Board : MonoBehaviour
 {
-    [SerializeField] private Tile[] tiles;
+    [SerializeField] private List<Tile> tiles;
     [SerializeField] private Player[] players;
-
+    
     private Bank _bank;
 
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
+
+    [SerializeField] private GameObject tileUIs;
     
     private int _currentPlayerIndex = 0;
     private Player _currentPlayer;
@@ -24,37 +27,44 @@ public class Board : MonoBehaviour
     
     private void Start()
     {
-        // For now this is the beginning of the game
-        var gameData = DataInitialiser.InitGameData();
-        tiles = gameData.Tiles;
-        _opportunityKnocksCardData = gameData.OpportunityKnocksCards;
-        _potLuckCardData = gameData.PotLuckCards;
-        
-        var titleDeeds = gameData.Properties;
+        var dataReader = new DataReader();
+        dataReader.ReadData();
+        tiles = dataReader.Tiles;
+        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
+        _potLuckCardData = dataReader.PotLuckCards;
+
+        var titleDeeds = dataReader.Properties;
         _bank = new Bank(32, 12, titleDeeds);
+        
+        // Assign each internal tile with a tileUI gameObject, and vice versa. And set each tile it's card
+        for (int i = 0; i < tiles.Count; i++)
+        {
+            tiles[i].TileUI = tileUIs.transform.GetChild(i).GetComponent<TileUI>();
+            tileUIs.transform.GetChild(i).GetComponent<TileUI>().Tile = tiles[i];
+            tiles[i].SetCard();
+            tiles[i].SetTileUI();
+        }
         
         // For now, we will start with 2 players who are humans
         players = new Player[2];
         var pl1Name = "Mark";
         var pl2Name = "Sarah";
-        
+
         players[0] = new GameObject(pl1Name).AddComponent<Human>().GetComponent<Human>();
         players[0].Name = pl1Name;
 
         players[1] = new GameObject(pl2Name).AddComponent<Human>().GetComponent<Human>();
         players[1].Name = pl2Name;
-        
+
         foreach (var player in players)
         {
             player.CurrentTile = tiles[0];
         }
-        
+
         // TODO add some sort of state machine to switch states to avoid endless if statements and booleans
         // when in player turn state:
         // player can roll, mortgage, trade, build
         // once rolled and moving squares is finished, player can still mortgage, trade, build, until player chooses end turn option
-        
-        PrintValues();
 
         StartCoroutine(Game());
     }
@@ -89,9 +99,10 @@ public class Board : MonoBehaviour
         // Input will be added later, for now the player will just move
 
         // Movement
-        int landedPos = player.Move(RollDice()) % tiles.Length;
+        int landedPos = player.Move(RollDice()) % tiles.Count;
         Tile landedTile = tiles[landedPos];
         _currentPlayer.CurrentTile = landedTile;
+        _currentPlayer.transform.position = _currentPlayer.CurrentTile.Position;
         // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
 
         Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
@@ -118,18 +129,5 @@ public class Board : MonoBehaviour
         Debug.Log("Dice 2: " + dice2);
         // Will add screen output showing each dice value
         return dice1 + dice2;
-    }
-
-    private void PrintValues()
-    {
-        foreach (var keyValuePair in _opportunityKnocksCardData)
-        {
-            Debug.Log("Description:" + keyValuePair.Key + " - Action:" + keyValuePair.Value);
-        }
-        
-        foreach (var keyValuePair in _potLuckCardData)
-        {
-            Debug.Log("Description:" + keyValuePair.Key + " - Action:" + keyValuePair.Value);
-        }
     }
 }
