@@ -6,38 +6,41 @@ namespace Tiles
     /// <summary>
     /// Inherits from tile class, describes a purchasable tiles that can be owned by a player or the bank
     /// </summary>
-    [System.Serializable]
+    //[System.Serializable]
     public class Property : Tile
     {
-        public Player OwnedBy { get; set; } // initially owned by the bank, null can be the bank for now
-        public int Cost { get; private set; }
-        public bool Mortgaged { get; private set; }
+        [SerializeField] protected Player ownedBy; // initially owned by the bank, null can be the bank for now
+        [SerializeField] protected int cost;
+        [SerializeField] protected bool mortgaged;
+
+        [SerializeField] private GameObject mortgagedCard; // Each property can be turned over to see the mortgage into
+
+        private int _currentRent; // Although each property manages rent differently, they all still have a current rent value
         
-        [field: SerializeField] public GameObject MortgagedCard { get; private set; } // Each property can be turned over to see the mortgage into
-
-        public Property(string name, int cost) : base(name)
+        protected void SetUp(string name, int cost)
         {
-            Cost = cost;
+            this.cost = cost;
+            base.SetUp(name);
         }
-
-        public override void SetTileUI()
+        
+        protected override void SetBoardTile()
         {
-            base.SetTileUI();
-            if (TileUI.transform.childCount > 0)
+            base.SetBoardTile();
+            if (transform.childCount > 0)
             {
-                var cost = TileUI.transform.GetChild(1).GetComponent<TMP_Text>();
-                cost.SetText("£"+Cost);
+                var cost = transform.GetChild(1).GetComponent<TMP_Text>();
+                cost.SetText("£"+this.cost);
             }
         }
         
         public override void OnLanded(Player player)
         {
             // Structure for what I think the code might end up looking like, this is mostly temporary
-            if (Mortgaged || OwnedBy == player)
+            if (mortgaged || ownedBy == player)
             {
                 // do nothing
             }
-            else if (OwnedBy != null)
+            else if (ownedBy != null)
             {
                 PayRent(player);
                 // player pays rent to OwnedBy
@@ -47,10 +50,9 @@ namespace Tiles
                 // player buy for the Cost, or auction
             }
         }
-
+        
         /// <summary>
-        /// Handles paying rent to the owner of this property. This functionality is specific to properties and is
-        /// overridden for stations, utilities and sites
+        /// Handles paying rent to the owner of this property. This functionality is specific to properties
         /// </summary>
         /// <param name="player"> The player that needs to pay rent to the owner </param>
         protected virtual void PayRent(Player player)

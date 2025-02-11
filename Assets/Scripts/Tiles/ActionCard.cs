@@ -1,12 +1,15 @@
+using UnityEngine;
+
 namespace Tiles
 {
     public class ActionCard : Tile
     {
-        private string _cardType;
+        [SerializeField] private string cardType;
         
-        public ActionCard(string name, string cardType) : base(name)
+        public void SetUp(string name, string cardType)
         {
-            _cardType = cardType;
+            this.cardType = cardType;
+            base.SetUp(name);
         }
 
         public override void OnLanded(Player player)

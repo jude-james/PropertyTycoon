@@ -1,14 +1,18 @@
+using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace Tiles
 {
     public class Tax : Tile
     {
-        private int _amount;
+        [SerializeField] private int amount;
         
-        public Tax(string name, int amount) : base(name)
+        public void SetUp(string name, int amount)
         {
-            _amount = amount;
+            this.amount = amount;
+            base.SetUp(name);
         }
-
+        
         public override void OnLanded(Player player)
         {
         }

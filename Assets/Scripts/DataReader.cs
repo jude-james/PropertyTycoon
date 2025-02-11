@@ -1,27 +1,22 @@
 using System.Collections.Generic;
 using Tiles;
+using UnityEngine;
 
 public class DataReader
 {
-    private const string Path = "Assets/ExternalFiles/";
+    private const string Path = "Assets/CSVFiles/";
     private const string BoardDataFileName = "PropertyTycoonBoardDataImproved(Sheet1).csv";
     private const string CardDataFileName = "PropertyTycoonCardData(Sheet1).csv";
-
+    
     public List<Tile> Tiles { get; private set; }
     public List<Property> Properties { get; private set; }
     public Dictionary<string, string> OpportunityKnocksCards { get; private set; }
     public Dictionary<string, string> PotLuckCards { get; private set; }
 
-    public void ReadData()
-    {
-        ReadBoardData();
-        ReadCardData();
-    }
-    
-    private void ReadBoardData()
+    public void ReadBoardData(Transform boardTiles)
     {
         // Hard coded values by looking at Exel spreadsheet
-        const int startColumn = 1;
+        const int startCol = 1;
 
         const int nameRow = 0;
         const int typeRow = 1;
@@ -44,79 +39,95 @@ public class DataReader
         
         Tiles = new List<Tile>();
         Properties = new List<Property>();
-            
+        
         var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
         
-        for (int i = startColumn; i < boardDataMatrix.Count; i++)
+        for (int i = 0; i < boardTiles.childCount; i++)
         {
-            var name = boardDataMatrix[i][nameRow];
-            var type = boardDataMatrix[i][typeRow];
+            var name = boardDataMatrix[i+startCol][nameRow];
+            var type = boardDataMatrix[i+startCol][typeRow];
             
             if (type == "Property")
             {
-                var cost = int.Parse(boardDataMatrix[i][costRow]);
-                var subtype = boardDataMatrix[i][subtypeRow];
+                var cost = int.Parse(boardDataMatrix[i+startCol][costRow]);
+                var subtype = boardDataMatrix[i+startCol][subtypeRow];
                 if (subtype == "Street")
                 {
-                    var set = boardDataMatrix[i][setRow];
-                    var initialRent = int.Parse(boardDataMatrix[i][initialRentRow]);
+                    var set = boardDataMatrix[i+startCol][setRow];
+                    var initialRent = int.Parse(boardDataMatrix[i+startCol][initialRentRow]);
                     var rentWithColourSet = initialRent * 2;
                     
                     var improvedRent = new int[improvedRentRowEnd - improvedRentRowStart + 1];
                     for (int j = improvedRentRowStart; j <= improvedRentRowEnd; j++)
                     {
-                        var rent = int.Parse(boardDataMatrix[i][j]);
+                        var rent = int.Parse(boardDataMatrix[i+startCol][j]);
                         improvedRent[j - improvedRentRowStart] = rent;
                     }
 
-                    var houseCost = int.Parse(boardDataMatrix[i][houseCostRow]);
-                    var hotelCost = int.Parse(boardDataMatrix[i][hotelCostRow]);
-
-                    Tiles.Add(new Street(name, cost, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost));
+                    var houseCost = int.Parse(boardDataMatrix[i+startCol][houseCostRow]);
+                    var hotelCost = int.Parse(boardDataMatrix[i+startCol][hotelCostRow]);
+                    
+                    var street = boardTiles.GetChild(i).gameObject.AddComponent<Street>();
+                    street.SetUp(name, cost, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost);
+                    Tiles.Add(street);
                 }
                 else if (subtype == "Station")
                 {
-                    var rent1 = int.Parse(boardDataMatrix[i][stationRent1Row]);
-                    var rent2 = int.Parse(boardDataMatrix[i][stationRent2Row]);
-                    var rent3 = int.Parse(boardDataMatrix[i][stationRent3Row]);
-                    var rent4 = int.Parse(boardDataMatrix[i][stationRent4Row]);
+                    var rent1 = int.Parse(boardDataMatrix[i+startCol][stationRent1Row]);
+                    var rent2 = int.Parse(boardDataMatrix[i+startCol][stationRent2Row]);
+                    var rent3 = int.Parse(boardDataMatrix[i+startCol][stationRent3Row]);
+                    var rent4 = int.Parse(boardDataMatrix[i+startCol][stationRent4Row]);
                     
-                    Tiles.Add(new Station(name, cost, rent1, rent2, rent3, rent4));
+                    var station = boardTiles.GetChild(i).gameObject.AddComponent<Station>();
+                    station.SetUp(name, cost, rent1, rent2, rent3, rent4);
+                    Tiles.Add(station);
                 }
                 else if (subtype == "Utility")
                 {
-                    var rent1 = int.Parse(boardDataMatrix[i][utilRent1Row]);
-                    var rent2 = int.Parse(boardDataMatrix[i][utilRent2Row]);
-                    var utilType = boardDataMatrix[i][specificRow];
+                    var rent1 = int.Parse(boardDataMatrix[i+startCol][utilRent1Row]);
+                    var rent2 = int.Parse(boardDataMatrix[i+startCol][utilRent2Row]);
+                    var utilType = boardDataMatrix[i+startCol][specificRow];
 
-                    Tiles.Add(new Utility(name, cost, rent1, rent2, utilType));
+                    var utility = boardTiles.GetChild(i).gameObject.AddComponent<Utility>();
+                    utility.SetUp(name, cost, rent1, rent2, utilType);
+                    Tiles.Add(utility);
                 }
                 
                 Properties.Add((Property) Tiles[^1]);
             }
             else if (type == "Tax")
             {
-                int amount = int.Parse(boardDataMatrix[i][taxAmountRow]);
-                Tiles.Add(new Tax(name, amount));
+                var amount = int.Parse(boardDataMatrix[i+startCol][taxAmountRow]);
+                
+                var tax = boardTiles.GetChild(i).gameObject.AddComponent<Tax>();
+                tax.SetUp(name, amount);
+                Tiles.Add(tax);
             }
             else if (type == "Action")
             {
-                var cardType = boardDataMatrix[i][subtypeRow];
-                Tiles.Add(new ActionCard(name, cardType));
+                var cardType = boardDataMatrix[i+startCol][subtypeRow];
+                
+                var actionCard = boardTiles.GetChild(i).gameObject.AddComponent<ActionCard>();
+                actionCard.SetUp(name, cardType);
+                Tiles.Add(actionCard);
             }
             else if (type == "Jail")
             {
-                Tiles.Add(new Jail(name));
+                var jail = boardTiles.GetChild(i).gameObject.AddComponent<Jail>();
+                jail.SetUp(name);
+                Tiles.Add(jail);
             }
             else
             {
                 // just visiting & free parking are left
-                Tiles.Add(new Tile(name));
+                var tile = boardTiles.GetChild(i).gameObject.AddComponent<Tile>();
+                tile.SetUp(name);
+                Tiles.Add(tile);
             }
         }
     }
-        
-    private void ReadCardData()
+    
+    public void ReadCardData()
     {
         // Hard coded values by looking at Exel spreadsheet
         const int descriptionRow = 0;

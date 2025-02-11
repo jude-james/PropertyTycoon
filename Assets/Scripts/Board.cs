@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Tiles;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Property Tycoon board, acts as a game manager. Tracks board tiles, bank, cards, and players
@@ -13,37 +11,29 @@ public class Board : MonoBehaviour
     [SerializeField] private List<Tile> tiles;
     [SerializeField] private Player[] players;
     
-    private Bank _bank;
+    [SerializeField] private Transform boardTiles;
 
+    private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
-
-    [SerializeField] private GameObject tileUIs;
     
     private int _currentPlayerIndex = 0;
     private Player _currentPlayer;
-
     private bool _endTurn;
     
     private void Start()
     {
         var dataReader = new DataReader();
-        dataReader.ReadData();
+        dataReader.ReadBoardData(boardTiles);
         tiles = dataReader.Tiles;
-        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
-        _potLuckCardData = dataReader.PotLuckCards;
-
+        
+        // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
         var titleDeeds = dataReader.Properties;
         _bank = new Bank(32, 12, titleDeeds);
         
-        // Assign each internal tile with a tileUI gameObject, and vice versa. And set each tile it's card
-        for (int i = 0; i < tiles.Count; i++)
-        {
-            tiles[i].TileUI = tileUIs.transform.GetChild(i).GetComponent<TileUI>();
-            tileUIs.transform.GetChild(i).GetComponent<TileUI>().Tile = tiles[i];
-            tiles[i].SetCard();
-            tiles[i].SetTileUI();
-        }
+        dataReader.ReadCardData();
+        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
+        _potLuckCardData = dataReader.PotLuckCards;
         
         // For now, we will start with 2 players who are humans
         players = new Player[2];
@@ -102,11 +92,11 @@ public class Board : MonoBehaviour
         int landedPos = player.Move(RollDice()) % tiles.Count;
         Tile landedTile = tiles[landedPos];
         _currentPlayer.CurrentTile = landedTile;
-        _currentPlayer.transform.position = _currentPlayer.CurrentTile.Position;
+        _currentPlayer.transform.position = _currentPlayer.CurrentTile.transform.position;
         // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
 
         Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
-        Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentTile.Name);
+        //Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentTile.Name);
 
         Debug.Log("Press space to end turn");
         while (true) {

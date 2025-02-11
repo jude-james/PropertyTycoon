@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Tiles
 {
@@ -9,49 +8,50 @@ namespace Tiles
     /// </summary>
     public class Street : Property
     {
-        public string Set { get; private set; }
-        public int InitialRent { get; private set; }
-        public int RentWithColourSet { get; set; }
-        public int[] ImprovedRent { get; private set; }
-        public int HouseCost { get; private set; }
-        public int HotelCost { get; private set; }
+        [SerializeField] private string set;
+        [SerializeField] private int initialRent;
+        [SerializeField] private int rentWithColourSet;
+        [SerializeField] private int[] improvedRent;
+        [SerializeField] private int houseCost;
+        [SerializeField] private int hotelCost;
 
-        public int CurrentHouses { get; set; }
-        public int CurrentHotels { get; set; }
+        private int _currentHouses;
+        private int _currentHotels;
         
-        public Street(string name, int cost, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost) : base(name, cost)
+        public void SetUp(string name, int cost, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
         {
-            Set = set;
-            InitialRent = initialRent;
-            RentWithColourSet = rentWithColourSet;
-            ImprovedRent = improvedRent;
-            HouseCost = houseCost;
-            HotelCost = hotelCost;
+            this.set = set;
+            this.initialRent = initialRent;
+            this.rentWithColourSet = rentWithColourSet;
+            this.improvedRent = improvedRent;
+            this.houseCost = houseCost;
+            this.hotelCost = hotelCost;
+            base.SetUp(name, cost);
         }
 
-        public override void SetCard()
+        protected override void SetCard()
         {
-            Card = Object.Instantiate(Resources.Load("Prefabs/" + Set)) as GameObject;
-            if (Card != null)
+            card = Instantiate(Resources.Load("Prefabs/" + set)) as GameObject;
+            if (card != null)
             {
-                var cardSprite = Card.transform.GetChild(0).GetChild(0);
-                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
-                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("£"+InitialRent);
-                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("£"+RentWithColourSet);
-                for (int i = 0; i < ImprovedRent.Length; i++)
+                var cardSprite = card.transform.GetChild(0).GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(name);
+                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("£"+initialRent);
+                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("£"+rentWithColourSet);
+                for (int i = 0; i < improvedRent.Length; i++)
                 {
-                    cardSprite.GetChild(3 + i).GetComponent<TMP_Text>().SetText("£"+ImprovedRent[i]);
+                    cardSprite.GetChild(3 + i).GetComponent<TMP_Text>().SetText("£"+improvedRent[i]);
                 }
-                cardSprite.GetChild(8).GetComponent<TMP_Text>().SetText("£"+HouseCost + " each");
-                cardSprite.GetChild(9).GetComponent<TMP_Text>().SetText("£"+HotelCost + " each");
+                cardSprite.GetChild(8).GetComponent<TMP_Text>().SetText("£"+houseCost + " each");
+                cardSprite.GetChild(9).GetComponent<TMP_Text>().SetText("£"+hotelCost + " each");
             }
         }
 
         protected override void PayRent(Player player)
         {
-            // figure out rent based on houses, hotels and if OwnedBy also owns the set
-            player.UpdateMoney(-InitialRent); // temporary
-            OwnedBy.UpdateMoney(InitialRent);
+            // figure out rent based on houses, hotels and if OwnedBy owns the set
+            player.UpdateMoney(-initialRent); // temporary
+            ownedBy.UpdateMoney(initialRent);
         }
     }
 }
