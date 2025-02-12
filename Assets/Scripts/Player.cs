@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Tiles;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -14,6 +15,8 @@ public class Player : MonoBehaviour
     [field: SerializeField] public Tile CurrentTile { get; set; }
     [SerializeField] private int getOutOfJailFreeCards;
     [SerializeField] private bool inJail;
+
+    [field: SerializeField] public SpriteRenderer spriteR { get; set; }
 
     private int _houses;
     private int _hotels;
@@ -39,5 +42,13 @@ public class Player : MonoBehaviour
         {
             money += amount;
         }
+    }
+
+    public void setSprite(Sprite sprite)
+    {
+        transform.AddComponent<SpriteRenderer>();
+        spriteR = transform.GetComponent<SpriteRenderer>();
+        spriteR.sortingLayerName = "High";
+        spriteR.sprite = sprite;
     }
 }

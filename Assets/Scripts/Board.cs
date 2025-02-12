@@ -21,6 +21,13 @@ public class Board : MonoBehaviour
     private Player _currentPlayer;
     private bool _endTurn;
     
+    [SerializeField] private Transform waypointPrefab;
+    [SerializeField] private float[,] positions = new float[2,40];
+
+    //holds the player sprites, currently only 2 players in the game
+    [SerializeField] private Sprite PlayerSprites1;
+    [SerializeField] private Sprite PlayerSprites2;
+    
     private void Start()
     {
         var dataReader = new DataReader();
@@ -46,9 +53,13 @@ public class Board : MonoBehaviour
         players[1] = new GameObject(pl2Name).AddComponent<Human>().GetComponent<Human>();
         players[1].Name = pl2Name;
 
+        players[0].setSprite(PlayerSprites1);
+        players[1].setSprite(PlayerSprites2);
+        
         foreach (var player in players)
         {
             player.CurrentTile = tiles[0];
+            player.transform.position = tiles[0].transform.position;
         }
 
         // TODO add some sort of state machine to switch states to avoid endless if statements and booleans
@@ -56,6 +67,9 @@ public class Board : MonoBehaviour
         // player can roll, mortgage, trade, build
         // once rolled and moving squares is finished, player can still mortgage, trade, build, until player chooses end turn option
 
+        positionWaypoints();
+        giveSpacesPositions();
+        
         StartCoroutine(Game());
     }
     
@@ -92,7 +106,11 @@ public class Board : MonoBehaviour
         int landedPos = player.Move(RollDice()) % tiles.Count;
         Tile landedTile = tiles[landedPos];
         _currentPlayer.CurrentTile = landedTile;
+        
+        // I have swapped to the manual points here, makes it a little easier, and for squares like just visiting the players sit in the corner
         _currentPlayer.transform.position = _currentPlayer.CurrentTile.transform.position;
+        // _currentPlayer.transform.position = _currentPlayer.CurrentTile.getPosition();
+        
         // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
 
         Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
@@ -119,5 +137,82 @@ public class Board : MonoBehaviour
         Debug.Log("Dice 2: " + dice2);
         // Will add screen output showing each dice value
         return dice1 + dice2;
+    }
+    
+    /*Creates space position on the board using absolute values, 
+    this is probably not the most practical implementation
+    but the easiest i could think of for now without manually creating 40 different 
+    waypoint objects and placing them.
+
+    It also has a horizontal bias added, so if the board is move horizontally, the points should move with it.
+    */
+    private void positionWaypoints()
+    {
+        //change in position from last point
+        float change;
+        //finds the horizontal movement of the board from the center
+        float bias = transform.position.x;
+
+        //this is bottom right corner
+        Instantiate(waypointPrefab,new Vector2(24 + bias,-24),new Quaternion(),transform);
+        positions[0,0] = 24 + bias;
+        positions[1,0] = -24;
+
+        //bottom right --> bottom left
+        for (int i = 0; i < 9;i++)
+        {
+            change = i*((float)4.5);
+            Instantiate(waypointPrefab,new Vector2(18 - change + bias,-24),new Quaternion(),transform);
+            positions[0,i+1] = 18 - change + bias;
+            positions[1,i+1] = -24;
+        }
+
+        //bottom left corner
+        Instantiate(waypointPrefab,new Vector2(-24 + bias,-24),new Quaternion(),transform);
+        positions[0,10] = -24 + bias;
+        positions[1,10] = -24;
+        //bottom left --> top left
+        for (int i = 0; i < 9;i++)
+        {
+            change = i*((float)4.5);
+            Instantiate(waypointPrefab,new Vector2(-24 + bias,-18 + change),new Quaternion(),transform);
+            positions[0,i+11] = -24 + bias;
+            positions[1,i+11] = -18 + change;
+        }
+
+        //top left corner
+        Instantiate(waypointPrefab,new Vector2(-24 + bias,24),new Quaternion(),transform);
+        positions[0,20] = -24 + bias;
+        positions[1,20] = 24;
+        //top left --> top right
+        for (int i = 0; i < 9;i++)
+        {
+            change = i*((float)4.5);
+            Instantiate(waypointPrefab,new Vector2(-18 + change + bias,24),new Quaternion(),transform);
+            positions[0,i+21] = -18 + change + bias;
+            positions[1,i+21] = 24;
+        }
+
+        //top right corner
+        Instantiate(waypointPrefab,new Vector2(24 + bias,24),new Quaternion(),transform);
+        positions[0,30] = 24 + bias;
+        positions[1,30] = 24;
+        //top right --> bottom right
+        for (int i = 0; i < 9;i++)
+        {
+            change = i*((float)4.5);
+            Instantiate(waypointPrefab,new Vector2(24 + bias,18 - change),new Quaternion(),transform);
+            positions[0,i+31] = 24 + bias;
+            positions[1,i+31] = 18 - change;
+        }
+    }
+
+    //This just assigns the space position to the different waypoints
+    private void giveSpacesPositions()
+    {
+        for (int i = 0; i < 40; i++)
+        {
+            tiles[i].setPosition(positions[0,i],positions[1,i]);
+        }
     }
 }

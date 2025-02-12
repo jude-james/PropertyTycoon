@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tiles
 {
@@ -11,6 +12,8 @@ namespace Tiles
         [SerializeField] protected string name;
         [SerializeField] protected GameObject card;
         
+        [SerializeField] private Vector2 position;
+
         public void SetUp(string name)
         {
             this.name = name;
@@ -69,6 +72,16 @@ namespace Tiles
         private void OnMouseExit()
         {
             HideCard();
+        }
+        
+        public void setPosition(float x,float y)
+        {
+            position = new Vector2(x,y);
+        }
+
+        public Vector2 getPosition()
+        {
+            return position;
         }
     }
 }

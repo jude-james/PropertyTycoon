@@ -4335,7 +4335,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -116.5, y: -90}
+  m_AnchoredPosition: {x: -116.5, y: -42.2}
   m_SizeDelta: {x: 183.65, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &362688111
@@ -10127,7 +10127,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 91.130066, y: -90.00006}
+  m_AnchoredPosition: {x: 91.130066, y: -42.2001}
   m_SizeDelta: {x: 203.642, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &848156179
@@ -10738,6 +10738,9 @@ MonoBehaviour:
   tiles: []
   players: []
   boardTiles: {fileID: 902769106}
+  waypointPrefab: {fileID: 6080715695410561673, guid: 5202d9d9c99cb469995646340c515750, type: 3}
+  PlayerSprites1: {fileID: 21300000, guid: 8de69dc4946ea4cceaa5e2f372812ae5, type: 3}
+  PlayerSprites2: {fileID: 21300000, guid: 2f8ac77fc04f04bfa8127ae23492feef, type: 3}
 --- !u!4 &917348780
 Transform:
   m_ObjectHideFlags: 0
@@ -16377,7 +16380,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1369673723
 RectTransform:
   m_ObjectHideFlags: 0
@@ -24102,7 +24105,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2041488784
 MonoBehaviour:
   m_ObjectHideFlags: 0
