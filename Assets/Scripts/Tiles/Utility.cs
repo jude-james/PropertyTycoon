@@ -26,7 +26,7 @@ namespace Tiles
                 prefabName = "UtilWater";
             }
             
-            card = Instantiate(Resources.Load("Prefabs/" + prefabName)) as GameObject;
+            card = Instantiate(Resources.Load("Prefabs/Cards/" + prefabName)) as GameObject;
             if (card != null)
             {
                 var cardSprite = card.transform.GetChild(0).GetChild(0);
@@ -36,10 +36,10 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // figure out rent based on dice roll
-            int amount = 0; // = player.diceRoll
-            player.UpdateMoney(-amount); // temporary
-            ownedBy.UpdateMoney(amount);
+            // figure out rent based on dice roll, this code needs testing
+            var amount = CurrentRent * player.DiceRoll;
+            player.TakeMoney(amount);
+            ownedBy.GiveMoney(amount);
         }
     }
 }

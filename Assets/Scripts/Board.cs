@@ -6,33 +6,36 @@ using UnityEngine;
 /// <summary>
 /// Property Tycoon board, acts as a game manager. Tracks board tiles, bank, cards, and players
 /// </summary>
-public class Board : MonoBehaviour
+public class Board : Singleton<Board>
 {
-    [SerializeField] private List<Tile> tiles;
+    public List<Tile> Tiles { get; private set; }
+    
     [SerializeField] private Player[] players;
     
     [SerializeField] private Transform boardTiles;
+    [SerializeField] private Player playerPrefab;
 
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
     
-    private int _currentPlayerIndex = 0;
     private Player _currentPlayer;
-    private bool _endTurn;
+    private int _currentPlayerIndex;
+
+    private readonly WaitForSeconds _timeBetweenTurns = new(1);
     
     [SerializeField] private Transform waypointPrefab;
     [SerializeField] private float[,] positions = new float[2,40];
 
     //holds the player sprites, currently only 2 players in the game
-    [SerializeField] private Sprite PlayerSprites1;
-    [SerializeField] private Sprite PlayerSprites2;
+    [SerializeField] private Sprite token1;
+    [SerializeField] private Sprite token2;
     
     private void Start()
     {
         var dataReader = new DataReader();
         dataReader.ReadBoardData(boardTiles);
-        tiles = dataReader.Tiles;
+        Tiles = dataReader.Tiles;
         
         // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
         var titleDeeds = dataReader.Properties;
@@ -44,35 +47,46 @@ public class Board : MonoBehaviour
         
         // For now, we will start with 2 players who are humans
         players = new Player[2];
-        var pl1Name = "Mark";
-        var pl2Name = "Sarah";
+        var player1Name = "Mark";
+        var player2Name = "Sarah";
 
-        players[0] = new GameObject(pl1Name).AddComponent<Human>().GetComponent<Human>();
-        players[0].Name = pl1Name;
-
-        players[1] = new GameObject(pl2Name).AddComponent<Human>().GetComponent<Human>();
-        players[1].Name = pl2Name;
-
-        players[0].setSprite(PlayerSprites1);
-        players[1].setSprite(PlayerSprites2);
+        players[0] = Instantiate(playerPrefab, transform.position, transform.rotation);
+        players[0].Name = player1Name;
+        players[0].GetComponent<SpriteRenderer>().sprite = token1;
+        
+        players[1] = Instantiate(playerPrefab, transform.position, transform.rotation);
+        players[1].GetComponent<SpriteRenderer>().sprite = token2;
+        players[1].Name = player2Name;
         
         foreach (var player in players)
         {
-            player.CurrentTile = tiles[0];
-            player.transform.position = tiles[0].transform.position;
+            player.CurrentTile = Tiles[0];
+            player.transform.position = Tiles[0].transform.position;
         }
 
-        // TODO add some sort of state machine to switch states to avoid endless if statements and booleans
-        // when in player turn state:
-        // player can roll, mortgage, trade, build
-        // once rolled and moving squares is finished, player can still mortgage, trade, build, until player chooses end turn option
-
+        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _currentPlayer.StartTurn();
+        
         positionWaypoints();
         giveSpacesPositions();
         
-        StartCoroutine(Game());
+        // StartCoroutine(Game());
+    }
+
+    public void EndTurn()
+    {
+        StartCoroutine(StartNextTurn());
     }
     
+    private IEnumerator StartNextTurn()
+    {
+        yield return _timeBetweenTurns;
+        _currentPlayerIndex++;
+        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _currentPlayer.StartTurn();
+    }
+    
+    /*
     private IEnumerator Game() // This function and NextTurn are quite shitty but it's is all I could get working - It will be changed
     {
         while (true)
@@ -97,14 +111,14 @@ public class Board : MonoBehaviour
             _currentPlayerIndex++;
         }
     }
-
+    
     private IEnumerator NextTurn(Player player)
     {
         // Input will be added later, for now the player will just move
 
         // Movement
-        int landedPos = player.Move(RollDice()) % tiles.Count;
-        Tile landedTile = tiles[landedPos];
+        int landedPos = player.Move(RollDice()) % Tiles.Count;
+        Tile landedTile = Tiles[landedPos];
         _currentPlayer.CurrentTile = landedTile;
         
         // I have swapped to the manual points here, makes it a little easier, and for squares like just visiting the players sit in the corner
@@ -138,6 +152,7 @@ public class Board : MonoBehaviour
         // Will add screen output showing each dice value
         return dice1 + dice2;
     }
+    */
     
     /*Creates space position on the board using absolute values, 
     this is probably not the most practical implementation
@@ -212,7 +227,7 @@ public class Board : MonoBehaviour
     {
         for (int i = 0; i < 40; i++)
         {
-            tiles[i].setPosition(positions[0,i],positions[1,i]);
+            Tiles[i].setPosition(positions[0,i],positions[1,i]);
         }
     }
 }

@@ -16,16 +16,4 @@ public class Bank
         Hotels = hotels;
         TitleDeeds = titleDeeds;
     }
-    
-    // tbh now we know the bank has endless money, these methods might be pointless, and if so, the bank class may be
-    // small enough again to merge into the board class
-    private void GiveMoney(Player player, int amount)
-    {
-        player.UpdateMoney(amount);
-    }
-
-    private void TakeMoney(Player player, int amount)
-    {
-        player.UpdateMoney(-amount);
-    }
 }
