@@ -15,7 +15,7 @@ namespace Tiles
 
         [SerializeField] private GameObject mortgagedCard; // Each property can be turned over to see the mortgage into
 
-        private int _currentRent; // Although each property manages rent differently, they all still have a current rent value
+        protected int CurrentRent; // Although each property manages rent differently, they all still have a current rent value
         
         protected void SetUp(string name, int cost)
         {

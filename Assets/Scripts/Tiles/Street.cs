@@ -31,7 +31,7 @@ namespace Tiles
 
         protected override void SetCard()
         {
-            card = Instantiate(Resources.Load("Prefabs/" + set)) as GameObject;
+            card = Instantiate(Resources.Load("Prefabs/Cards/" + set)) as GameObject;
             if (card != null)
             {
                 var cardSprite = card.transform.GetChild(0).GetChild(0);
@@ -49,9 +49,9 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // figure out rent based on houses, hotels and if OwnedBy owns the set
-            player.UpdateMoney(-initialRent); // temporary
-            ownedBy.UpdateMoney(initialRent);
+            // TODO figure out rent based on houses, hotels and if OwnedBy owns the set
+            player.TakeMoney(CurrentRent);
+            ownedBy.GiveMoney(CurrentRent);
         }
     }
 }
