@@ -11024,7 +11024,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 2838922392215905563, guid: edbe3a86f396149798719d6b4776a9ae, type: 3}
   waypointPrefab: {fileID: 6080715695410561673, guid: 5202d9d9c99cb469995646340c515750, type: 3}
   token1: {fileID: 21300000, guid: 7645467d282324144be43ab4f767a283, type: 3}
-  token2: {fileID: 21300000, guid: 811f9e5bcdeeb473b9cc121526483c89, type: 3}
+  token2: {fileID: 21300000, guid: 5f3bab2fba1232a4c9130c396e267c9b, type: 3}
 --- !u!4 &917348780
 Transform:
   m_ObjectHideFlags: 0
