@@ -8,10 +8,12 @@ using UnityEngine;
 /// </summary>
 public class Board : Singleton<Board>
 {
-    public List<Tile> Tiles { get; private set; }
+    [field: SerializeField] public List<Tile> Tiles { get; private set; }
     
     [SerializeField] private Player[] players;
     
+    [SerializeField] private Sprite[] tokens; // temporary until character select is done
+
     [SerializeField] private Transform boardTiles;
     [SerializeField] private Player playerPrefab;
 
@@ -26,10 +28,6 @@ public class Board : Singleton<Board>
     
     [SerializeField] private Transform waypointPrefab;
     [SerializeField] private float[,] positions = new float[2,40];
-
-    //holds the player sprites, currently only 2 players in the game
-    [SerializeField] private Sprite token1;
-    [SerializeField] private Sprite token2;
     
     private void Start()
     {
@@ -45,25 +43,17 @@ public class Board : Singleton<Board>
         _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
         _potLuckCardData = dataReader.PotLuckCards;
         
-        // For now, we will start with 2 players who are humans
-        players = new Player[2];
-        var player1Name = "Mark";
-        var player2Name = "Sarah";
+        // For now, we will start with humans, and testing all 6 tokens
+        players = new Player[tokens.Length];
 
-        players[0] = Instantiate(playerPrefab, transform.position, transform.rotation);
-        players[0].Name = player1Name;
-        players[0].GetComponent<SpriteRenderer>().sprite = token1;
-        
-        players[1] = Instantiate(playerPrefab, transform.position, transform.rotation);
-        players[1].GetComponent<SpriteRenderer>().sprite = token2;
-        players[1].Name = player2Name;
-        
-        foreach (var player in players)
+        for (var i = 0; i < players.Length; i++)
         {
-            player.CurrentTile = Tiles[0];
-            player.transform.position = Tiles[0].transform.position;
+            players[i] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation);
+            players[i].SetSprite(tokens[i]);
+            players[i].Name = tokens[i].name;
+            players[i].CurrentTile = Tiles[0];
         }
-
+        
         _currentPlayer = players[_currentPlayerIndex % players.Length];
         _currentPlayer.StartTurn();
         

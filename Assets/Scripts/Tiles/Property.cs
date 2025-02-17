@@ -28,14 +28,13 @@ namespace Tiles
             base.SetBoardTile();
             if (transform.childCount > 0)
             {
-                var cost = transform.GetChild(1).GetComponent<TMP_Text>();
-                cost.SetText("£"+this.cost);
+                var costText = transform.GetChild(1).GetComponent<TMP_Text>();
+                costText.SetText("£"+cost);
             }
         }
         
         public override void OnLanded(Player player)
         {
-            // Structure for what I think the code might end up looking like, this is mostly temporary
             if (mortgaged || ownedBy == player)
             {
                 // do nothing
@@ -48,6 +47,7 @@ namespace Tiles
             else
             {
                 // player buy for the Cost, or auction
+                Debug.Log(player.Name + " Can buy " + name + " for £" + cost);
             }
         }
         
