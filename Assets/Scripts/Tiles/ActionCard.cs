@@ -12,6 +12,11 @@ namespace Tiles
             base.SetUp(name);
         }
 
+        protected override void SetCard()
+        {
+            // TODO create action card prefab and set it 
+        }
+
         public override void OnLanded(Player player)
         {
         }

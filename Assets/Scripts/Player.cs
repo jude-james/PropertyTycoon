@@ -18,11 +18,16 @@ public class Player : MonoBehaviour
     [SerializeField] private bool inJail;
     public int DiceRoll { get; private set; }
 
+    private Sprite _sprite;
+    
+    private bool _rolledADouble;
+    private int _doubleCount;
+    
     private int _houses;
     private int _hotels;
     
     private int _currentTileIndex;
-
+    
     private const int MoveSpeed = 10;
     
     private void Start()
@@ -30,14 +35,15 @@ public class Player : MonoBehaviour
         UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
         UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
         
-        // TODO Assign PlayerInfoPanelHere
+        // TODO Assign PlayerInfoPanel Here
     }
 
     public void StartTurn()
     {
         _activePlayer = this;
+
+        UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
         
-        // TODO Set UI element name to this players name and sprite
         Debug.Log(Name + " has started their turn and is now the active player");
 
         // Decide here which buttons to gray out or which UI elements to pop up, e.g. if they are in jail
@@ -78,23 +84,12 @@ public class Player : MonoBehaviour
         for (int i = _currentTileIndex; i <= _currentTileIndex + DiceRoll; i++)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i % Board.Instance.Tiles.Count].transform.position));
+            yield return new WaitForSeconds(0.1f); 
         }
 
         LandOnTile();
     }
-
-    private void LandOnTile()
-    {
-        _currentTileIndex = (_currentTileIndex + DiceRoll) % Board.Instance.Tiles.Count;
-        CurrentTile = Board.Instance.Tiles[_currentTileIndex];
-        
-        CurrentTile.OnLanded(this);
-        
-        // TODO Check if dice roll was a double here
-
-        UIManager.Instance.endTurnPanel.SetActive(true);
-    }
-
+    
     private IEnumerator MoveBetweenPositions(Vector2 targetPosition)
     {
         var distance = Vector2.Distance(transform.position, targetPosition);
@@ -103,8 +98,18 @@ public class Player : MonoBehaviour
         {
             transform.position = Vector2.MoveTowards(transform.position, targetPosition, MoveSpeed * Time.deltaTime);
             distance = Vector2.Distance(transform.position, targetPosition);
-            yield return null; 
+            yield return null;
         }
+    }
+    
+    private void LandOnTile()
+    {
+        _currentTileIndex = (_currentTileIndex + DiceRoll) % Board.Instance.Tiles.Count;
+        CurrentTile = Board.Instance.Tiles[_currentTileIndex];
+        
+        CurrentTile.OnLanded(this);
+        
+        UIManager.Instance.endTurnPanel.SetActive(true);
     }
     
     private void RollDice()
@@ -117,7 +122,7 @@ public class Player : MonoBehaviour
     public void GiveMoney(int amount)
     {
         money += amount;
-        // TODO update UI money text 
+        // TODO update UI money text, with event?
     }
 
     public void TakeMoney(int amount)
@@ -129,5 +134,11 @@ public class Player : MonoBehaviour
         {
             Debug.Log("Mortgage or go bankrupt");
         }
+    }
+
+    public void SetSprite(Sprite sprite)
+    {
+        _sprite = sprite;
+        GetComponent<SpriteRenderer>().sprite = _sprite;
     }
 }
