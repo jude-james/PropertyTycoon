@@ -16,10 +16,14 @@ public class Player : MonoBehaviour
     [field: SerializeField] public Tile CurrentTile { get; set; }
     [SerializeField] private int getOutOfJailFreeCards;
     [SerializeField] private bool inJail;
-    public int DiceRoll { get; private set; }
-
-    private Sprite _sprite;
     
+    private Sprite _sprite;
+
+    public int DiceRoll { get; private set; }
+    private int _diceRoll1;
+    private int _diceRoll2;
+    
+    // TODO use these for rolling a double logic
     private bool _rolledADouble;
     private int _doubleCount;
     
@@ -29,6 +33,8 @@ public class Player : MonoBehaviour
     private int _currentTileIndex;
     
     private const int MoveSpeed = 10;
+
+    private readonly WaitForSeconds _reactionTime = new(0.5f);
     
     private void Start()
     {
@@ -44,8 +50,6 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
         
-        Debug.Log(Name + " has started their turn and is now the active player");
-
         // Decide here which buttons to gray out or which UI elements to pop up, e.g. if they are in jail
         if (inJail)
         {
@@ -63,21 +67,20 @@ public class Player : MonoBehaviour
         if (this != _activePlayer) return;
         
         UIManager.Instance.rollDicePanel.SetActive(false);
-
-        RollDice();
-        Debug.Log(Name + " rolled a " + DiceRoll);
-        // TODO Animate dice roll here
         
+        _diceRoll1 = Random.Range(1, 7);
+        _diceRoll2 = Random.Range(1, 7);
+        DiceRoll = _diceRoll1 + _diceRoll2;
+        StartCoroutine(AnimateDiceRoll());
+    }
+
+    private IEnumerator AnimateDiceRoll()
+    {
+        var diceRollTime = UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
+        yield return diceRollTime;
+        yield return _reactionTime;
         StartCoroutine(MoveToTile());
     }
-    
-    private void OnEndTurn()
-    {
-        if (this != _activePlayer) return;
-        
-        UIManager.Instance.endTurnPanel.SetActive(false);
-        Board.Instance.EndTurn();
-    } 
     
     private IEnumerator MoveToTile()
     {
@@ -109,15 +112,17 @@ public class Player : MonoBehaviour
         
         CurrentTile.OnLanded(this);
         
+        // move this line to tile class so tile controls when the round ends
         UIManager.Instance.endTurnPanel.SetActive(true);
     }
     
-    private void RollDice()
+    private void OnEndTurn()
     {
-        var diceRoll1 = Random.Range(1, 7);
-        var diceRoll2 = Random.Range(1, 7);
-        DiceRoll = diceRoll1 + diceRoll2;
-    }
+        if (this != _activePlayer) return;
+        
+        UIManager.Instance.endTurnPanel.SetActive(false);
+        Board.Instance.EndTurn();
+    } 
     
     public void GiveMoney(int amount)
     {
