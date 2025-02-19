@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using Tiles;
 
-public class PlayerTests
+public class TestDiceRoll
 {
     private Board board;
     private Player player;
