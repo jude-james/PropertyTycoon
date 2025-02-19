@@ -1,10 +1,17 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class UIManager : Singleton<UIManager>
 {
-    public GameObject[] playerInfoPanels;
+    [SerializeField] private Animator dice1Animator;
+    [SerializeField] private Animator dice2Animator;
+    [SerializeField] private SpriteRenderer dice1;
+    [SerializeField] private SpriteRenderer dice2;
+    [SerializeField] private Sprite[] landedDiceFaces;
+    
+    public GameObject[] playerInfoPanels; // TODO assign each to player
     
     public GameObject rollDicePanel;
     public GameObject endTurnPanel;
@@ -18,6 +25,8 @@ public class UIManager : Singleton<UIManager>
     private TMP_Text _endTurnPanelNameText;
     private Image _endTurnPanelImage;
 
+    private readonly WaitForSeconds _diceRollTime = new(1.5f);
+    
     private void Awake()
     {
         _rollDicePanelNameText = rollDicePanel.transform.GetChild(0).GetComponent<TMP_Text>();
@@ -33,5 +42,22 @@ public class UIManager : Singleton<UIManager>
         _rollDicePanelImage.sprite = sprite;
         _endTurnPanelNameText.SetText(name);
         _endTurnPanelImage.sprite = sprite;
+    }
+
+    public WaitForSeconds AnimateDiceRoll(int diceRoll1, int diceRoll2)
+    {
+        StartCoroutine(AnimateDiceRollCoroutine(diceRoll1, diceRoll2));
+        return _diceRollTime;
+    }
+
+    private IEnumerator AnimateDiceRollCoroutine(int diceRoll1, int diceRoll2)
+    {
+        dice1Animator.enabled = true;
+        dice2Animator.enabled = true;
+        yield return _diceRollTime;
+        dice1Animator.enabled = false;
+        dice2Animator.enabled = false;
+        dice1.sprite = landedDiceFaces[diceRoll1-1];
+        dice2.sprite = landedDiceFaces[diceRoll2-1];
     }
 }
