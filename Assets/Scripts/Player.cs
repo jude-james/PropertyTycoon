@@ -39,7 +39,7 @@ public class Player : MonoBehaviour
     private const int MoveSpeed = 10;
 
     private readonly WaitForSeconds _reactionTime = new(0.5f);
-    private readonly WaitForSeconds _pauseAtTileTime = new(0.1f);
+    private readonly WaitForSeconds _pauseBetweenTileTime = new(0.1f);
     
     private void Start()
     {
@@ -94,7 +94,10 @@ public class Player : MonoBehaviour
         for (int i = _currentTileIndex; i <= _currentTileIndex + DiceRoll; i++)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i % Board.Instance.Tiles.Count].transform.position));
-            yield return _pauseAtTileTime;
+            if (i < _currentTileIndex + DiceRoll) // Don't pause between tiles if it's on the last tile
+            {
+                yield return _pauseBetweenTileTime;
+            }
         }
 
         animator.enabled = false;
