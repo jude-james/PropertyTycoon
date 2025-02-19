@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// Playable gameObject throughout the game, can either be a human or a bot
@@ -10,6 +12,8 @@ public class Player : MonoBehaviour
 {
     private static Player _activePlayer;
 
+    [SerializeField] private Animator animator;
+    
     [field: SerializeField] public string Name { get; set; }
     [SerializeField] private int money = 1500;
     [SerializeField] private List<Property> titleDeeds;
@@ -35,6 +39,7 @@ public class Player : MonoBehaviour
     private const int MoveSpeed = 10;
 
     private readonly WaitForSeconds _reactionTime = new(0.5f);
+    private readonly WaitForSeconds _pauseAtTileTime = new(0.1f);
     
     private void Start()
     {
@@ -84,12 +89,17 @@ public class Player : MonoBehaviour
     
     private IEnumerator MoveToTile()
     {
+        animator.enabled = true;
+        
         for (int i = _currentTileIndex; i <= _currentTileIndex + DiceRoll; i++)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i % Board.Instance.Tiles.Count].transform.position));
-            yield return new WaitForSeconds(0.1f); 
+            yield return _pauseAtTileTime;
         }
 
+        animator.enabled = false;
+        transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
+        
         LandOnTile();
     }
     
