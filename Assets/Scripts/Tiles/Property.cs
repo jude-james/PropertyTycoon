@@ -47,7 +47,7 @@ namespace Tiles
             else
             {
                 // player buy for the Cost, or auction
-                Debug.Log(player.Name + " Can buy " + name + " for £" + cost);
+                // Debug.Log(player.Name + " Can buy " + name + " for £" + cost);
             }
         }
         

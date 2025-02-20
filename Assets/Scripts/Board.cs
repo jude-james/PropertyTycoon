@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
-using UnityEditor.SearchService;
 using UnityEngine;
 
 /// <summary>
@@ -44,7 +43,8 @@ public class Board : Singleton<Board>
         _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
         _potLuckCardData = dataReader.PotLuckCards;
         
-        // For now, we will start with humans, and testing all 6 tokens
+        // For now, we will start with humans, later on will switch to players selected from main menu
+        // but will do it here for testing purposes
         players = new Player[tokens.Length];
 
         for (var i = 0; i < players.Length; i++)
@@ -52,16 +52,10 @@ public class Board : Singleton<Board>
             players[i] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation);
             players[i].SetSprite(tokens[i]);
             players[i].Name = tokens[i].name;
-            players[i].CurrentTile = Tiles[0];
         }
         
         _currentPlayer = players[_currentPlayerIndex % players.Length];
         _currentPlayer.StartTurn();
-        
-        positionWaypoints();
-        giveSpacesPositions();
-        
-        // StartCoroutine(Game());
     }
 
     public void EndTurn()
@@ -76,74 +70,6 @@ public class Board : Singleton<Board>
         _currentPlayer = players[_currentPlayerIndex % players.Length];
         _currentPlayer.StartTurn();
     }
-    
-    /*
-    private IEnumerator Game() // This function and NextTurn are quite shitty but it's is all I could get working - It will be changed
-    {
-        while (true)
-        {
-            // loop through players
-            _currentPlayer = players[_currentPlayerIndex % players.Length];
-
-            _endTurn = false;
-            //Starts turn then waits for endTurn to become true
-            StartCoroutine(NextTurn(_currentPlayer));
-            while (true) 
-            {
-                if (_endTurn == true)
-                {
-                    break; 
-                } 
-                yield return null; 
-            }
-            Debug.Log(_currentPlayer.Name + " turn over");
-
-            // once player is completely finished with turn AKA they press "end turn", increment and start over
-            _currentPlayerIndex++;
-        }
-    }
-    
-    private IEnumerator NextTurn(Player player)
-    {
-        // Input will be added later, for now the player will just move
-
-        // Movement
-        int landedPos = player.Move(RollDice()) % Tiles.Count;
-        Tile landedTile = Tiles[landedPos];
-        _currentPlayer.CurrentTile = landedTile;
-        
-        // I have swapped to the manual points here, makes it a little easier, and for squares like just visiting the players sit in the corner
-        _currentPlayer.transform.position = _currentPlayer.CurrentTile.transform.position;
-        // _currentPlayer.transform.position = _currentPlayer.CurrentTile.getPosition();
-        
-        // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
-
-        Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
-        //Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentTile.Name);
-
-        Debug.Log("Press space to end turn");
-        while (true) {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                yield return null; 
-                break;
-            } 
-            yield return null;  
-        }
-        _endTurn = true;
-    }
-
-    private int RollDice()
-    {
-        // Returns result of rolling two dice
-        int dice1 = Random.Range(1, 6);
-        int dice2 = Random.Range(1, 6);
-        Debug.Log("Dice 1: " + dice1);
-        Debug.Log("Dice 2: " + dice2);
-        // Will add screen output showing each dice value
-        return dice1 + dice2;
-    }
-    */
     
     /*Creates space position on the board using absolute values, 
     this is probably not the most practical implementation

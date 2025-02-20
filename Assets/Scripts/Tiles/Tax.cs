@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Tiles
 {
@@ -15,7 +14,7 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
-            // override setCard so tax has a card, then show the card for X amount of seconds
+            // TODO override setCard so tax has a card, then show the card for X amount of seconds
             player.TakeMoney(amount);
         }
     }
