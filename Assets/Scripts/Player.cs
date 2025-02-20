@@ -136,7 +136,10 @@ public class Player : MonoBehaviour
         for (int i = _currentTileIndex; i != _newTileIndex + direction; i = (i + direction + Board.Instance.Tiles.Count) % Board.Instance.Tiles.Count)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i].transform.position));
-            yield return _pauseBetweenTileTime;
+            if (i != _newTileIndex) // Don't pause between tile if on the last tile
+            {
+                yield return _pauseBetweenTileTime;
+            }
         }
         
         StopAnimation();
