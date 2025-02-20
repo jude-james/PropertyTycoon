@@ -10,8 +10,7 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private SpriteRenderer dice1;
     [SerializeField] private SpriteRenderer dice2;
     [SerializeField] private Sprite[] landedDiceFaces;
-    
-    public GameObject[] playerInfoPanels; // TODO assign each to player
+    [SerializeField] private GameObject[] playerInfoPanels;
     
     public GameObject rollDicePanel;
     public GameObject endTurnPanel;
@@ -26,6 +25,8 @@ public class UIManager : Singleton<UIManager>
     private Image _endTurnPanelImage;
 
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
+
+    private int _nextInfoPanel;
     
     private void Awake()
     {
@@ -36,6 +37,14 @@ public class UIManager : Singleton<UIManager>
         _endTurnPanelImage = endTurnPanel.transform.GetChild(2).GetComponent<Image>();
     }
 
+    public GameObject GetInfoPanel()
+    {
+        var infoPanel = playerInfoPanels[_nextInfoPanel];
+        infoPanel.SetActive(true);
+        _nextInfoPanel++;
+        return infoPanel;
+    }
+    
     public void SetActivePlayerInfo(string name, Sprite sprite)
     {
         _rollDicePanelNameText.SetText(name);

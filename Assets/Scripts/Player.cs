@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -23,6 +25,8 @@ public class Player : MonoBehaviour
     
     private Sprite _sprite;
 
+    private GameObject _infoPanel;
+    
     public int DiceRoll { get; private set; }
     private int _diceRoll1;
     private int _diceRoll2;
@@ -45,10 +49,10 @@ public class Player : MonoBehaviour
     {
         UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
         UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
-        
-        // TODO Assign PlayerInfoPanel Here
-    }
 
+        SetInfoPanel();
+    }
+    
     public void StartTurn()
     {
         _activePlayer = this;
@@ -153,7 +157,23 @@ public class Player : MonoBehaviour
             Debug.Log("Mortgage or go bankrupt");
         }
     }
+    
+    private void SetInfoPanel()
+    {
+        // TODO make an updateInfoPanel for when money or properties or jail card number changes 
+        
+        _infoPanel = UIManager.Instance.GetInfoPanel();
 
+        var token = _infoPanel.transform.GetChild(0).GetComponent<Image>();
+        token.sprite = _sprite;
+        
+        var nameText = _infoPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        nameText.SetText(Name);
+
+        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        moneyText.SetText("£"+money);
+    }
+    
     public void SetSprite(Sprite sprite)
     {
         _sprite = sprite;
