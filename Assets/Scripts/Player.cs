@@ -103,13 +103,13 @@ public class Player : MonoBehaviour
     {
         var newIndex = _currentTileIndex + offset;
         
-        if (newIndex > Board.Instance.Tiles.Count) // Use >= if we are including GO tile 
+        if (newIndex >= Board.Instance.Tiles.Count) // Use >= if we are including GO tile 
         {
             // Player has looped around the board, and therefore passed go
             Debug.Log("Passed go");
             GiveMoney(PassedGoAmount);
         }
-
+        
         _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
     }
     
@@ -133,12 +133,14 @@ public class Player : MonoBehaviour
     {
         StartAnimation();
 
-        var forwardDistance = (_newTileIndex - _currentTileIndex + Board.Instance.Tiles.Count) % Board.Instance.Tiles.Count;
-        var backwardDistance =  (_currentTileIndex  - _newTileIndex + Board.Instance.Tiles.Count) % Board.Instance.Tiles.Count;
+        var tileCount = Board.Instance.Tiles.Count;
+        var forwardDistance = (_newTileIndex - _currentTileIndex + tileCount) % tileCount;
+        var backwardDistance =  (_currentTileIndex  - _newTileIndex + tileCount) % tileCount;
 
         var direction = clockwiseOnly || forwardDistance <= backwardDistance ? 1 : -1;
 
-        for (int i = _currentTileIndex; i != _newTileIndex + direction; i = (i + direction + Board.Instance.Tiles.Count) % Board.Instance.Tiles.Count)
+        // Don't ask...
+        for (int i = Maths.Mod(_currentTileIndex + direction,tileCount); i != Maths.Mod(_newTileIndex + direction,tileCount); i = (i + direction + tileCount) % tileCount)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i].transform.position));
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
