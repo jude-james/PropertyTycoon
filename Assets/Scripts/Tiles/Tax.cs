@@ -16,6 +16,7 @@ namespace Tiles
         {
             // TODO override setCard so tax has a card, then show the card for X amount of seconds
             player.TakeMoney(amount);
+            player.CompleteTurn();
         }
     }
 }

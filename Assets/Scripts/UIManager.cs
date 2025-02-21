@@ -11,19 +11,25 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private SpriteRenderer dice2;
     [SerializeField] private Sprite[] landedDiceFaces;
     [SerializeField] private GameObject[] playerInfoPanels;
-    
-    public GameObject rollDicePanel;
-    public GameObject endTurnPanel;
+
+    [SerializeField] private GameObject rollDicePanel;
+    [SerializeField] private GameObject endTurnPanel;
+    [SerializeField] private GameObject forSalePanel;
 
     public Button rollDiceButton;
     public Button endTurnButton;
-
+    public Button buyButton;
+    public Button auctionButton;
+    
     private TMP_Text _rollDicePanelNameText;
     private Image _rollDicePanelImage;
     
     private TMP_Text _endTurnPanelNameText;
     private Image _endTurnPanelImage;
 
+    private TMP_Text _forSalePanelCostText;
+    private GameObject _forSalePanelTitleDeed; // TODO set properties card to this
+    
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
 
     private int _nextInfoPanel;
@@ -35,8 +41,24 @@ public class UIManager : Singleton<UIManager>
         
         _endTurnPanelNameText = endTurnPanel.transform.GetChild(0).GetComponent<TMP_Text>();
         _endTurnPanelImage = endTurnPanel.transform.GetChild(2).GetComponent<Image>();
+
+        _forSalePanelCostText = forSalePanel.transform.GetChild(1).GetComponent<TMP_Text>();
     }
 
+    public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
+    public void HideRollDicePrompt() => rollDicePanel.SetActive(false);
+    
+    public void ShowEndTurnPrompt() => endTurnPanel.SetActive(true);
+    public void HideEndTurnPrompt() => endTurnPanel.SetActive(false);
+    
+    public void ShowForSalePrompt(int cost)
+    {
+        _forSalePanelCostText.SetText("£" + cost);
+        forSalePanel.SetActive(true);
+    }
+
+    public void HideForSalePrompt() => forSalePanel.SetActive(false);
+    
     public GameObject GetInfoPanel()
     {
         var infoPanel = playerInfoPanels[_nextInfoPanel];

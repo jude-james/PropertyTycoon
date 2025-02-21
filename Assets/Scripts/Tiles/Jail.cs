@@ -4,6 +4,7 @@ namespace Tiles
     {
         public override void OnLanded(Player player)
         {
+            player.CompleteTurn();
         }
     }
 }

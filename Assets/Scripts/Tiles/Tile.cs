@@ -26,6 +26,7 @@ namespace Tiles
         /// <param name="player"> The player that landed on the tile </param>
         public virtual void OnLanded(Player player)
         {
+            player.CompleteTurn();
         }
         
         /// <summary>

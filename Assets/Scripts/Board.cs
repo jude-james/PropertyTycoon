@@ -8,15 +8,15 @@ using UnityEngine;
 /// </summary>
 public class Board : Singleton<Board>
 {
-    [field: SerializeField] public List<Tile> Tiles { get; private set; }
+    [SerializeField] private Sprite[] tokens; // temporary
     
-    [SerializeField] private Player[] players;
-    
-    [SerializeField] private Sprite[] tokens; // temporary until character select is done
-
     [SerializeField] private Transform boardTiles;
-    [SerializeField] private Player playerPrefab;
+    [SerializeField] private GameObject playerPrefab;
 
+    public List<Tile> Tiles { get; private set; }
+
+    private Player[] _players;
+    
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
@@ -43,18 +43,18 @@ public class Board : Singleton<Board>
         _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
         _potLuckCardData = dataReader.PotLuckCards;
         
-        // For now, we will start with humans, later on will switch to players selected from main menu
-        // but will do it here for testing purposes
-        players = new Player[tokens.Length];
+        // Manually assigning players for testing purposes, will get players from main menu later
+        _players = new Player[2];
 
-        for (var i = 0; i < players.Length; i++)
-        {
-            players[i] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation);
-            players[i].SetSprite(tokens[i]);
-            players[i].Name = tokens[i].name;
-        }
+        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        _players[0].SetSprite(tokens[0]);
+        _players[0].Name = tokens[0].name;
         
-        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        _players[1].SetSprite(tokens[1]);
+        _players[1].Name = tokens[1].name;
+        
+        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
         _currentPlayer.StartTurn();
     }
 
@@ -67,7 +67,7 @@ public class Board : Singleton<Board>
     {
         yield return _timeBetweenTurns;
         _currentPlayerIndex++;
-        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
         _currentPlayer.StartTurn();
     }
     

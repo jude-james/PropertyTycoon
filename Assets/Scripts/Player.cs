@@ -13,8 +13,7 @@ public class Player : MonoBehaviour
 {
     private static Player _activePlayer;
 
-    [SerializeField] private Animator animator;
-    
+    private Animator _animator;
     private Sprite _sprite;
     private GameObject _infoPanel;
 
@@ -48,8 +47,12 @@ public class Player : MonoBehaviour
     
     private void Start()
     {
+        _animator = GetComponent<Animator>();
+        
         UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
         UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
+        UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
+        UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
 
         SetInfoPanel();
     }
@@ -67,19 +70,23 @@ public class Player : MonoBehaviour
         }
         else
         {
-            // set roll dice panel active
-            UIManager.Instance.rollDicePanel.SetActive(true);
+            RollDiceDecision();
         }
     }
 
+    protected virtual void RollDiceDecision()
+    {
+        UIManager.Instance.ShowRollDicePrompt();
+    }
+    
     /// <summary>
-    /// Method called when player clicks "Roll Dice" button
+    /// Event function called when human clicks Roll Dice button
     /// </summary>
-    private void OnRollDice() // Bot would call this automatically instead of it being assigned to a button
+    protected void OnRollDice()
     {
         if (this != _activePlayer) return;
         
-        UIManager.Instance.rollDicePanel.SetActive(false);
+        UIManager.Instance.HideRollDicePrompt();
         
         _diceRoll1 = Random.Range(1, 7);
         _diceRoll2 = Random.Range(1, 7);
@@ -117,8 +124,19 @@ public class Player : MonoBehaviour
     {
         var diceRollTime = UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
         yield return diceRollTime;
-        yield return _reactionTime;
-        StartCoroutine(MoveToTile(false));
+        
+        if (_doubleCount == DoubleLimit)
+        {
+            _doubleCount = 0;
+            Debug.Log("Go to jail");
+            // Set position to jail position
+            // EndTurn()
+        }
+        else
+        {
+            yield return _reactionTime;
+            StartCoroutine(MoveToTile(false));
+        }
     }
     
     /// <summary>
@@ -139,14 +157,11 @@ public class Player : MonoBehaviour
 
         var direction = clockwiseOnly || forwardDistance <= backwardDistance ? 1 : -1;
 
-        // Don't ask...
         for (int i = Maths.Mod(_currentTileIndex + direction,tileCount); i != Maths.Mod(_newTileIndex + direction,tileCount); i = (i + direction + tileCount) % tileCount)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i].transform.position));
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
-            {
                 yield return _pauseBetweenTileTime;
-            }
         }
         
         StopAnimation();
@@ -181,13 +196,15 @@ public class Player : MonoBehaviour
         
         _currentTile.OnLanded(this);
         
-        // TODO delegate roll dice logic elsewhere
-        if (_doubleCount == DoubleLimit)
-        {
-            _doubleCount = 0;
-            Debug.Log("Go to jail");
-        }
-        else if (_rolledADouble)
+        // CompleteTurn();
+    }
+
+    /// <summary>
+    /// Method is called once tile functionality is completed and either ends the turn or allows for another roll
+    /// </summary>
+    public void CompleteTurn()
+    {
+        if (_rolledADouble)
         {
             _rolledADouble = false;
             StartTurn();
@@ -195,25 +212,66 @@ public class Player : MonoBehaviour
         else
         {
             _doubleCount = 0;
-            UIManager.Instance.endTurnPanel.SetActive(true);
+            EndTurnDecision();
         }
+    }
+
+    protected virtual void EndTurnDecision()
+    {
+        UIManager.Instance.ShowEndTurnPrompt();
     }
     
     /// <summary>
-    /// Method called when player clicks "End Turn" button 
+    /// Event function called when player clicks End Turn button 
     /// </summary>
-    private void OnEndTurn()
+    protected void OnEndTurn()
     {
         if (this != _activePlayer) return;
         
-        UIManager.Instance.endTurnPanel.SetActive(false);
+        UIManager.Instance.HideEndTurnPrompt();
         Board.Instance.EndTurn();
-    } 
+    }
+
+    public virtual void ForSaleDecision(int cost)
+    {
+        UIManager.Instance.ShowForSalePrompt(cost);
+    }
+
+    /// <summary>
+    /// Event function called when player clicks Buy button 
+    /// </summary>
+    protected void OnBuy()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideForSalePrompt();
+        
+        Debug.Log("Player has chosen to buy");
+        
+        // TODO check if have enough money first
+        ((Property) _currentTile).Buy(this);
+        
+        CompleteTurn();
+    }
+
+    /// <summary>
+    /// Event function called when player clicks Auction button 
+    /// </summary>
+    protected void OnAuction()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideForSalePrompt();
+        
+        Debug.Log("Player has chosen to auction");
+        
+        CompleteTurn();
+    }
     
     public void GiveMoney(int amount)
     {
         _money += amount;
-        // TODO update UI money text, with event?
+        // TODO update UI money text, with event or with an animation
     }
 
     public void TakeMoney(int amount)
@@ -251,12 +309,12 @@ public class Player : MonoBehaviour
 
     private void StartAnimation()
     {
-        animator.enabled = true;
+        _animator.enabled = true;
     }
 
     private void StopAnimation()
     {
-        animator.enabled = false;
+        _animator.enabled = false;
         transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
     }
 }

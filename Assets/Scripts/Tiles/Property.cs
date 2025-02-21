@@ -41,14 +41,19 @@ namespace Tiles
             }
             else if (ownedBy != null)
             {
-                PayRent(player);
                 // player pays rent to OwnedBy
+                PayRent(player);
             }
             else
             {
                 // player buy for the Cost, or auction
-                // Debug.Log(player.Name + " Can buy " + name + " for £" + cost);
+                player.ForSaleDecision(cost);
             }
+        }
+
+        public void Buy(Player player)
+        {
+            Debug.Log("Buy logic...");
         }
         
         /// <summary>
