@@ -28,7 +28,6 @@ public class Player : MonoBehaviour
     private int _diceRoll1;
     private int _diceRoll2;
     
-    // TODO use these for rolling a double logic
     private bool _rolledADouble;
     private int _doubleCount;
     
@@ -42,6 +41,7 @@ public class Player : MonoBehaviour
     private const int MoveSpeed = 10;
 
     private const int PassedGoAmount = 200;
+    private const int DoubleLimit = 3;
     
     private readonly WaitForSeconds _reactionTime = new(0.5f);
     private readonly WaitForSeconds _pauseBetweenTileTime = new(0.1f);
@@ -84,6 +84,12 @@ public class Player : MonoBehaviour
         _diceRoll1 = Random.Range(1, 7);
         _diceRoll2 = Random.Range(1, 7);
         DiceRoll = _diceRoll1 + _diceRoll2;
+
+        if (_diceRoll1 == _diceRoll2)
+        {
+            _rolledADouble = true;
+            _doubleCount++;
+        }
         
         SetNewTileIndex(DiceRoll);
         StartCoroutine(AnimateDiceRoll());
@@ -97,10 +103,9 @@ public class Player : MonoBehaviour
     {
         var newIndex = _currentTileIndex + offset;
         
-        if (newIndex >= Board.Instance.Tiles.Count)
+        if (newIndex > Board.Instance.Tiles.Count) // Use >= if we are including GO tile 
         {
             // Player has looped around the board, and therefore passed go
-            // TODO test this actually works
             Debug.Log("Passed go");
             GiveMoney(PassedGoAmount);
         }
@@ -136,7 +141,10 @@ public class Player : MonoBehaviour
         for (int i = _currentTileIndex; i != _newTileIndex + direction; i = (i + direction + Board.Instance.Tiles.Count) % Board.Instance.Tiles.Count)
         {
             yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i].transform.position));
-            yield return _pauseBetweenTileTime;
+            if (i != _newTileIndex) // Don't pause between tile if on the last tile
+            {
+                yield return _pauseBetweenTileTime;
+            }
         }
         
         StopAnimation();
@@ -171,8 +179,22 @@ public class Player : MonoBehaviour
         
         _currentTile.OnLanded(this);
         
-        // TODO eventually move this line to tile class so tile controls when the round ends
-        UIManager.Instance.endTurnPanel.SetActive(true);
+        // TODO delegate roll dice logic elsewhere
+        if (_doubleCount == DoubleLimit)
+        {
+            _doubleCount = 0;
+            Debug.Log("Go to jail");
+        }
+        else if (_rolledADouble)
+        {
+            _rolledADouble = false;
+            StartTurn();
+        }
+        else
+        {
+            _doubleCount = 0;
+            UIManager.Instance.endTurnPanel.SetActive(true);
+        }
     }
     
     /// <summary>
