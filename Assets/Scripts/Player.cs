@@ -5,6 +5,7 @@ using Tiles;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+
 /// <summary>
 /// Represents a playable game object throughout the game, which can either be a human or a bot.
 /// This script handles player movement, dice rolling, and interactions with the game board.
@@ -113,6 +114,16 @@ public class Player : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
         LandOnTile();
     }
+
+    /// @cond
+    public Tile _testMoveToTile(int diceRoll1, int diceRoll2) {
+        // used for unit test to explicitly return tile
+        int finalRoll = diceRoll1 + diceRoll2;
+        int currentTileIndex = (finalRoll) % Board.Instance.Tiles.Count; // explicitly set to 1st box
+        Tile currentTile = Board.Instance.Tiles[currentTileIndex];
+        return CurrentTile;
+    }
+    /// @endcond
 
     /// <summary>
     /// Smoothly moves the player between two positions.
