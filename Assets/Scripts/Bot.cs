@@ -1,36 +1,56 @@
 using System.Collections;
+using Tiles;
 using UnityEngine;
 
+/// <summary>
+/// AI Agent inherited from player class. Makes its own moves and decisions
+/// </summary>
 public class Bot : Player
 {
+    private readonly WaitForSeconds _decisionMakingTime = new(2.5f); // Simulate bot thinking and give time for UI elements to show
+    
     protected override void RollDiceDecision()
     {
-        // Bot can choose to 'click' roll dice, or do the other options... auction, build, sell, trade...
+        // Bot can choose to 'click' roll dice
         OnRollDice();
     }
 
     protected override void EndTurnDecision()
     {
-        // Bot can choose to 'click' end turn, or do the other options... auction, build, sell, trade...
+        // Bot can choose to 'click' end turn, or it can choose the other options... auction, build, sell, trade...
         OnEndTurn();
     }
 
-    public override void ForSaleDecision(int cost)
+    protected override void InJailDecision()
     {
-        // bot can choose to buy or auction, currently it is buying
-        
-        // bot should check it has enough money first
-        
-        // Show the prompt even though it's a bot, the user should see it still
-        StartCoroutine(ForSaleDecisionCoroutine(cost));
+        UIManager.Instance.ShowInJailPrompt(false, false, false);
+
+        StartCoroutine(InJailDecisionCoroutine());
     }
 
-    private IEnumerator ForSaleDecisionCoroutine(int cost)
+    private IEnumerator InJailDecisionCoroutine()
     {
-        // TODO make buttons uninteractable
-        UIManager.Instance.ShowForSalePrompt(cost);
-        yield return new WaitForSeconds(1.5f);
-        UIManager.Instance.HideForSalePrompt();
+        yield return _decisionMakingTime;
+        
+        // Bot can either post bail, use card or stay in jail
+        // Bot should check if it has enough money or has enough getOutOfJailFreeCards first
+        
+        OnPostBail();
+    }
+    
+    public override void ForSaleDecision(Property property)
+    {
+        UIManager.Instance.ShowForSalePrompt(false, false, property);
+
+        StartCoroutine(ForSaleDecisionCoroutine(property));
+    }
+
+    private IEnumerator ForSaleDecisionCoroutine(Property property)
+    {
+        yield return _decisionMakingTime;
+        
+        // bot can choose to buy or auction
+        // Bot should check it has enough money first
         
         OnBuy();
     }

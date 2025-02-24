@@ -8,18 +8,23 @@ using UnityEngine;
 /// </summary>
 public class Board : Singleton<Board>
 {
-    [SerializeField] private Sprite[] tokens; // temporary
-    
     [SerializeField] private Transform boardTiles;
+    [SerializeField] private Transform jailPosition;
     [SerializeField] private GameObject playerPrefab;
+    
+    [SerializeField] private Sprite[] tokens; // temporary
+
+    public Vector2 JailPosition => jailPosition.position;
 
     public List<Tile> Tiles { get; private set; }
-
+    
     private Player[] _players;
     
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
+    
+    // TODO add free parking sum, then add free parking tile
     
     private Player _currentPlayer;
     private int _currentPlayerIndex;
@@ -28,6 +33,11 @@ public class Board : Singleton<Board>
     
     [SerializeField] private Transform waypointPrefab;
     [SerializeField] private float[,] positions = new float[2,40];
+    
+    // This is temporary and not very robust, will change when action cards are implemented
+    // Key tiles
+    public int justVisitingIndex = 10;
+    public int goIndex = 0;
     
     private void Start()
     {
@@ -46,7 +56,7 @@ public class Board : Singleton<Board>
         // Manually assigning players for testing purposes, will get players from main menu later
         _players = new Player[2];
 
-        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
         _players[0].SetSprite(tokens[0]);
         _players[0].Name = tokens[0].name;
         

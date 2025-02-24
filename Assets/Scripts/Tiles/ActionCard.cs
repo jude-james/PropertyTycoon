@@ -4,11 +4,11 @@ namespace Tiles
 {
     public class ActionCard : Tile
     {
-        [SerializeField] private string cardType;
+        private string _cardType;
         
         public void SetUp(string name, string cardType)
         {
-            this.cardType = cardType;
+            this._cardType = cardType;
             base.SetUp(name);
         }
 

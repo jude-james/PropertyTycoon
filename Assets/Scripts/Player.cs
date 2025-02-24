@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 /// <summary>
-/// Playable gameObject throughout the game, can either be a human or a bot
+/// Playable gameObject throughout the game, can either be a human player or a bot
 /// </summary>
 public class Player : MonoBehaviour
 {
@@ -20,8 +20,12 @@ public class Player : MonoBehaviour
     public string Name { get; set; }
     private int _money = 1500;
     private List<Property> _titleDeeds;
-    private int _getOutOfJailFreeCards;
+    
     private bool _inJail;
+    private int _roundsInJail = -1;
+    private const int RoundsInJailLimit = 2;
+    private const int PostBailAmount = 50;
+    private int _getOutOfJailFreeCards;
     
     public int DiceRoll { get; private set; }
     private int _diceRoll1;
@@ -29,7 +33,8 @@ public class Player : MonoBehaviour
     
     private bool _rolledADouble;
     private int _doubleCount;
-    
+    private const int DoubleLimit = 3;
+
     private int _houses; // These might not be needed
     private int _hotels;
     
@@ -37,13 +42,14 @@ public class Player : MonoBehaviour
     private int _currentTileIndex;
     private int _newTileIndex;
     
-    private const int MoveSpeed = 10;
-
+    private bool _passedGo;
     private const int PassedGoAmount = 200;
-    private const int DoubleLimit = 3;
+    
+    private const int MoveSpeed = 10;
     
     private readonly WaitForSeconds _reactionTime = new(0.5f);
     private readonly WaitForSeconds _pauseBetweenTileTime = new(0.1f);
+    private readonly WaitForSeconds _jailPopupTime = new(1.5f);
     
     private void Start()
     {
@@ -51,9 +57,14 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
         UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
+        
         UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
         UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
-
+        
+        UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
+        UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);
+        UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
+        
         SetInfoPanel();
     }
     
@@ -63,10 +74,25 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
         
-        // Decide here which buttons to gray out or which UI elements to pop up, e.g. if they are in jail
         if (_inJail)
         {
-            // show specific in jail options
+            if (_roundsInJail == -1)
+            {
+                _roundsInJail++;
+                InJailDecision();
+            }
+            else if (_roundsInJail == RoundsInJailLimit)
+            {
+                _roundsInJail = -1;
+                LeaveJail();
+            }
+            else
+            {
+                _roundsInJail++;
+                // EndTurnDecision() for allowing the player to choose to build, trade and stuff
+                // Or OnEndTurn() to just straight up skip the player, ask watson games
+                OnEndTurn();
+            }
         }
         else
         {
@@ -80,12 +106,17 @@ public class Player : MonoBehaviour
     }
     
     /// <summary>
-    /// Event function called when human clicks Roll Dice button
+    /// Event function called when player clicks Roll Dice button
     /// </summary>
     protected void OnRollDice()
     {
         if (this != _activePlayer) return;
-        
+
+        StartCoroutine(OnRollDiceCoroutine());
+    }
+
+    private IEnumerator OnRollDiceCoroutine()
+    {
         UIManager.Instance.HideRollDicePrompt();
         
         _diceRoll1 = Random.Range(1, 7);
@@ -98,45 +129,33 @@ public class Player : MonoBehaviour
             _doubleCount++;
         }
         
-        SetNewTileIndex(DiceRoll);
-        StartCoroutine(AnimateDiceRoll());
+        yield return UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
+        yield return _reactionTime;
+
+        if (_doubleCount == DoubleLimit)
+        {
+            GoToJail();
+        }
+        else
+        {
+            ShiftTileIndex(DiceRoll);
+            StartCoroutine(MoveToTile(false));
+        }
     }
     
     /// <summary>
     /// Sets the newTileIndex depending on the offset from the currentTileIndex, e.g. offset of -3 sets newTileIndex back 3 spaces
     /// </summary>
     /// <param name="offset"> The number of spaces +- from the currentTileIndex </param>
-    private void SetNewTileIndex(int offset)
+    private void ShiftTileIndex(int offset)
     {
         var newIndex = _currentTileIndex + offset;
-        
-        if (newIndex >= Board.Instance.Tiles.Count) // Use >= if we are including GO tile 
-        {
-            // Player has looped around the board, and therefore passed go
-            Debug.Log("Passed go");
-            GiveMoney(PassedGoAmount);
-        }
-        
         _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
     }
     
-    private IEnumerator AnimateDiceRoll()
+    private void SetTileIndex(int newTileIndex)
     {
-        var diceRollTime = UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
-        yield return diceRollTime;
-        
-        if (_doubleCount == DoubleLimit)
-        {
-            _doubleCount = 0;
-            Debug.Log("Go to jail");
-            // Set position to jail position
-            // EndTurn()
-        }
-        else
-        {
-            yield return _reactionTime;
-            StartCoroutine(MoveToTile(false));
-        }
+        _newTileIndex = Maths.Mod(newTileIndex, Board.Instance.Tiles.Count);
     }
     
     /// <summary>
@@ -159,9 +178,13 @@ public class Player : MonoBehaviour
 
         for (int i = Maths.Mod(_currentTileIndex + direction,tileCount); i != Maths.Mod(_newTileIndex + direction,tileCount); i = (i + direction + tileCount) % tileCount)
         {
-            yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i].transform.position));
+            yield return MoveBetweenPositions(Board.Instance.Tiles[i].transform.position);
+            
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
                 yield return _pauseBetweenTileTime;
+
+            if (i == 0)
+                _passedGo = true;
         }
         
         StopAnimation();
@@ -191,16 +214,21 @@ public class Player : MonoBehaviour
     /// </summary>
     private void LandOnTile()
     {
+        if (_passedGo)
+        {
+            Debug.Log("Passed go");
+            GiveMoney(PassedGoAmount);
+            _passedGo = false;
+        }
+        
         _currentTileIndex = _newTileIndex;
         _currentTile = Board.Instance.Tiles[_currentTileIndex];
         
         _currentTile.OnLanded(this);
-        
-        // CompleteTurn();
     }
 
     /// <summary>
-    /// Method is called once tile functionality is completed and either ends the turn or allows for another roll
+    /// Method is called once tile functionality is completed and either ends the turn or allows for another turn
     /// </summary>
     public void CompleteTurn()
     {
@@ -232,9 +260,93 @@ public class Player : MonoBehaviour
         Board.Instance.EndTurn();
     }
 
-    public virtual void ForSaleDecision(int cost)
+    public void GoToJail()
     {
-        UIManager.Instance.ShowForSalePrompt(cost);
+        StartCoroutine(GoToJailCoroutine());
+    }
+
+    private IEnumerator GoToJailCoroutine()
+    {
+        _rolledADouble = false;
+        _doubleCount = 0;
+        
+        UIManager.Instance.ShowGoToJailPopup();
+        yield return _jailPopupTime; 
+        UIManager.Instance.HideGoToJailPopup();
+        
+        StartAnimation();
+        yield return MoveBetweenPositions(Board.Instance.JailPosition);
+        StopAnimation();
+        
+        _inJail = true;
+        
+        EndTurnDecision();
+    }
+
+    private void LeaveJail()
+    {
+        StartCoroutine(LeaveJailCoroutine());
+    }
+
+    private IEnumerator LeaveJailCoroutine()
+    {
+        _inJail = false;
+        _roundsInJail = -1;
+        
+        SetTileIndex(Board.Instance.justVisitingIndex);
+        yield return MoveBetweenPositions(Board.Instance.Tiles[Board.Instance.justVisitingIndex].transform.position);
+        LandOnTile();
+    }
+
+    protected virtual void InJailDecision()
+    {
+        UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards > 0, true);
+    }
+
+    /// <summary>
+    /// Event function called when player clicks Post bail button
+    /// </summary>
+    protected void OnPostBail()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideInJailPrompt();
+        
+        TakeMoney(PostBailAmount);
+        // TODO Add £50 to free parking 
+        
+        LeaveJail();
+    }
+
+    /// <summary>
+    /// Event function called when player clicks get out of jail free button 
+    /// </summary>
+    protected void OnGetOutOfJailFree()
+    {
+        if (_activePlayer != this) return;
+
+        UIManager.Instance.HideInJailPrompt();
+        
+        // TODO make UpdateGetOutOfJailFree() or something that changes the UI element
+        _getOutOfJailFreeCards--;
+        LeaveJail();
+    }
+
+    /// <summary>
+    /// Event function called when player clicks remain in jail button
+    /// </summary>
+    protected void OnRemainInJail()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideInJailPrompt();
+
+        OnEndTurn();
+    }
+    
+    public virtual void ForSaleDecision(Property property)
+    {
+        UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, true, property);
     }
 
     /// <summary>
@@ -242,14 +354,17 @@ public class Player : MonoBehaviour
     /// </summary>
     protected void OnBuy()
     {
-        if (_activePlayer != this) return;
+        if (this != _activePlayer) return;
         
         UIManager.Instance.HideForSalePrompt();
         
-        Debug.Log("Player has chosen to buy");
+        Debug.Log("Buying property...");
+
+        var property = (Property)_currentTile;
         
-        // TODO check if have enough money first
-        ((Property) _currentTile).Buy(this);
+        // TODO finish buy logic
+        // TakeMoney(property.Cost);
+        // ... 
         
         CompleteTurn();
     }
@@ -259,36 +374,40 @@ public class Player : MonoBehaviour
     /// </summary>
     protected void OnAuction()
     {
-        if (_activePlayer != this) return;
+        if (this != _activePlayer) return;
         
         UIManager.Instance.HideForSalePrompt();
         
-        Debug.Log("Player has chosen to auction");
+        Debug.Log("Auctioning property...");
+        
+        // TODO auction
         
         CompleteTurn();
     }
-    
+
     public void GiveMoney(int amount)
     {
         _money += amount;
-        // TODO update UI money text, with event or with an animation
+        UpdateInfoPanel();
     }
 
     public void TakeMoney(int amount)
     {
-        _money -= amount;
-        // TODO update UI money text 
+        var newMoney = _money - amount;
 
-        if (_money <= 0)
+        if (newMoney < 0)
         {
             Debug.Log("Mortgage or go bankrupt");
+        }
+        else
+        {
+            _money = newMoney;
+            UpdateInfoPanel();
         }
     }
     
     private void SetInfoPanel()
     {
-        // TODO make an updateInfoPanel for when money or properties or jail card number changes 
-        
         _infoPanel = UIManager.Instance.GetInfoPanel();
 
         var token = _infoPanel.transform.GetChild(0).GetComponent<Image>();
@@ -299,6 +418,18 @@ public class Player : MonoBehaviour
 
         var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         moneyText.SetText("£"+_money);
+    }
+
+    private void UpdateInfoPanel()
+    {
+        // TODO make variables global and separate into multiple methods
+        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        moneyText.SetText("£"+_money);
+
+        var getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
+        getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
+        
+        // TODO loop through title deeds and update titledeedmini UI list
     }
     
     public void SetSprite(Sprite sprite)

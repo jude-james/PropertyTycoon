@@ -1,21 +1,19 @@
-using UnityEngine;
-
 namespace Tiles
 {
     public class Tax : Tile
     {
-        [SerializeField] private int amount;
+        private int _amount;
         
         public void SetUp(string name, int amount)
         {
-            this.amount = amount;
+            _amount = amount;
             base.SetUp(name);
         }
         
         public override void OnLanded(Player player)
         {
             // TODO override setCard so tax has a card, then show the card for X amount of seconds
-            player.TakeMoney(amount);
+            player.TakeMoney(_amount);
             player.CompleteTurn();
         }
     }

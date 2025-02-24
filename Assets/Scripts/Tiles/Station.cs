@@ -21,11 +21,11 @@ namespace Tiles
 
         protected override void SetCard()
         {
-            card = Instantiate(Resources.Load("Prefabs/Cards/Station")) as GameObject;
-            if (card != null)
+            Card = Instantiate(Resources.Load("Prefabs/Cards/Station")) as GameObject;
+            if (Card != null)
             {
-                var cardSprite = card.transform.GetChild(0).GetChild(0);
-                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(name);
+                var cardSprite = Card.transform.GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
                 cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("£"+rent1);
                 cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("£"+rent2);
                 cardSprite.GetChild(3).GetComponent<TMP_Text>().SetText("£"+rent3);
@@ -37,7 +37,7 @@ namespace Tiles
         {
             // TODO figure out rent based on how many stations OwnedBy owns
             player.TakeMoney(CurrentRent);
-            ownedBy.GiveMoney(CurrentRent);
+            OwnedBy.GiveMoney(CurrentRent);
         }
     }
 }

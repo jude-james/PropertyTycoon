@@ -8,14 +8,14 @@ namespace Tiles
     /// </summary>
     public class Tile : MonoBehaviour
     {
-        [SerializeField] protected string name;
-        [SerializeField] protected GameObject card;
+        protected string Name { get; private set; }
+        public GameObject Card { get; protected set; }
         
         [SerializeField] private Vector2 position;
 
         public void SetUp(string name)
         {
-            this.name = name;
+            Name = name;
             SetCard();
             SetBoardTile();
         }
@@ -44,23 +44,23 @@ namespace Tiles
             if (transform.childCount > 0)
             {
                 var nameText = transform.GetChild(0).GetComponent<TMP_Text>();
-                nameText.SetText(name);
+                nameText.SetText(Name);
             }
         }
 
         private void ShowCard()
         {
-            if (card != null)
+            if (Card != null)
             {
-                card.transform.GetChild(0).gameObject.SetActive(true);
+                Card.SetActive(true);
             }
         }
 
         private void HideCard()
         {
-            if (card != null)
+            if (Card != null)
             {
-                card.transform.GetChild(0).gameObject.SetActive(false);
+                Card.SetActive(false);
             }
         }
 

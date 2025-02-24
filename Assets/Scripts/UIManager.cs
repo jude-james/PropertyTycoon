@@ -1,6 +1,8 @@
 using System.Collections;
+using Tiles;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class UIManager : Singleton<UIManager>
@@ -15,11 +17,18 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject rollDicePanel;
     [SerializeField] private GameObject endTurnPanel;
     [SerializeField] private GameObject forSalePanel;
-
+    [SerializeField] private GameObject goToJailPanel;
+    [SerializeField] private GameObject inJailPanel;
+    
     public Button rollDiceButton;
     public Button endTurnButton;
+    
     public Button buyButton;
     public Button auctionButton;
+    
+    public Button postBailButton;
+    public Button getOutOfJailFreeButton;
+    public Button remainInJailButton;
     
     private TMP_Text _rollDicePanelNameText;
     private Image _rollDicePanelImage;
@@ -28,7 +37,13 @@ public class UIManager : Singleton<UIManager>
     private Image _endTurnPanelImage;
 
     private TMP_Text _forSalePanelCostText;
-    private GameObject _forSalePanelTitleDeed; // TODO set properties card to this
+    private GameObject _forSalePanelCard;
+    private Transform _forSalePanelCardPlaceholder;
+
+    private TMP_Text _goToJailPanelNameText;
+
+    private TMP_Text _inJailPanelNameText;
+    private Image _inJailPanelImage;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
 
@@ -43,6 +58,12 @@ public class UIManager : Singleton<UIManager>
         _endTurnPanelImage = endTurnPanel.transform.GetChild(2).GetComponent<Image>();
 
         _forSalePanelCostText = forSalePanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _forSalePanelCardPlaceholder = forSalePanel.transform.GetChild(4).transform;
+        
+        _goToJailPanelNameText = goToJailPanel.transform.GetChild(0).GetComponent<TMP_Text>();
+
+        _inJailPanelNameText = inJailPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _inJailPanelImage = inJailPanel.transform.GetChild(2).GetComponent<Image>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
@@ -51,13 +72,33 @@ public class UIManager : Singleton<UIManager>
     public void ShowEndTurnPrompt() => endTurnPanel.SetActive(true);
     public void HideEndTurnPrompt() => endTurnPanel.SetActive(false);
     
-    public void ShowForSalePrompt(int cost)
+    public void ShowForSalePrompt(bool buyButtonEnabled, bool auctionButtonEnabled, Property property)
     {
-        _forSalePanelCostText.SetText("£" + cost);
+        buyButton.interactable = buyButtonEnabled;
+        auctionButton.interactable = auctionButtonEnabled;
+        
+        _forSalePanelCostText.SetText("£" + property.Cost);
+        _forSalePanelCard = Instantiate(property.Card.transform.GetChild(0).gameObject, _forSalePanelCardPlaceholder);
+        
         forSalePanel.SetActive(true);
     }
+    public void HideForSalePrompt()
+    {
+        Destroy(_forSalePanelCard);
+        forSalePanel.SetActive(false);
+    }
 
-    public void HideForSalePrompt() => forSalePanel.SetActive(false);
+    public void ShowGoToJailPopup() => goToJailPanel.SetActive(true);
+    public void HideGoToJailPopup() => goToJailPanel.SetActive(false);
+
+    public void ShowInJailPrompt(bool postBailButtonEnabled, bool getOutOfJailFreeButtonEnabled, bool remainInJailButtonEnabled)
+    {
+        postBailButton.interactable = postBailButtonEnabled;
+        getOutOfJailFreeButton.interactable = getOutOfJailFreeButtonEnabled;
+        remainInJailButton.interactable = remainInJailButtonEnabled;
+        inJailPanel.SetActive(true);
+    }
+    public void HideInJailPrompt() => inJailPanel.SetActive(false);
     
     public GameObject GetInfoPanel()
     {
@@ -73,15 +114,14 @@ public class UIManager : Singleton<UIManager>
         _rollDicePanelImage.sprite = sprite;
         _endTurnPanelNameText.SetText(name);
         _endTurnPanelImage.sprite = sprite;
+
+        _goToJailPanelNameText.SetText(name);
+        
+        _inJailPanelNameText.SetText(name);
+        _inJailPanelImage.sprite = sprite;
     }
 
-    public WaitForSeconds AnimateDiceRoll(int diceRoll1, int diceRoll2)
-    {
-        StartCoroutine(AnimateDiceRollCoroutine(diceRoll1, diceRoll2));
-        return _diceRollTime;
-    }
-
-    private IEnumerator AnimateDiceRollCoroutine(int diceRoll1, int diceRoll2)
+    public IEnumerator AnimateDiceRoll(int diceRoll1, int diceRoll2)
     {
         dice1Animator.enabled = true;
         dice2Animator.enabled = true;
