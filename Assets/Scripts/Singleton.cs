@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// use cond to hide from doc generation
+/// @cond
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static T _instance;
@@ -19,3 +21,4 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         }
     }
 }
+/// @endcond

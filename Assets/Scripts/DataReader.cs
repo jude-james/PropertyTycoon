@@ -13,6 +13,10 @@ public class DataReader
     public Dictionary<string, string> OpportunityKnocksCards { get; private set; }
     public Dictionary<string, string> PotLuckCards { get; private set; }
 
+    /// <summary>
+    /// Reads the board data from a CSV file and sets up the board tiles.
+    /// </summary>
+    /// <param name="boardTiles">The transform of the board tiles.</param>
     public void ReadBoardData(Transform boardTiles)
     {
         // Hard coded values by looking at Exel spreadsheet
@@ -127,6 +131,9 @@ public class DataReader
         }
     }
     
+    /// <summary>
+    /// Reads the card data from a CSV file and sets up the opportunity knocks and pot luck cards.
+    /// </summary>
     public void ReadCardData()
     {
         // Hard coded values by looking at Exel spreadsheet

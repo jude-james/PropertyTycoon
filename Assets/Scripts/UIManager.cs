@@ -3,6 +3,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the UI elements and interactions in the game.
+/// </summary>
 public class UIManager : Singleton<UIManager>
 {
     [SerializeField] private Animator dice1Animator;
@@ -36,6 +39,11 @@ public class UIManager : Singleton<UIManager>
         _endTurnPanelImage = endTurnPanel.transform.GetChild(2).GetComponent<Image>();
     }
 
+    /// <summary>
+    /// Sets the active player's information in the UI.
+    /// </summary>
+    /// <param name="name">The name of the active player.</param>
+    /// <param name="sprite">The sprite representing the player.</param>
     public void SetActivePlayerInfo(string name, Sprite sprite)
     {
         _rollDicePanelNameText.SetText(name);
@@ -44,6 +52,12 @@ public class UIManager : Singleton<UIManager>
         _endTurnPanelImage.sprite = sprite;
     }
 
+    /// <summary>
+    /// Animates the dice roll and returns the time it takes to complete the animation.
+    /// </summary>
+    /// <param name="diceRoll1">The first dice roll result.</param>
+    /// <param name="diceRoll2">The second dice roll result.</param>
+    /// <returns>The time it takes to complete the animation.</returns>
     public WaitForSeconds AnimateDiceRoll(int diceRoll1, int diceRoll2)
     {
         StartCoroutine(AnimateDiceRollCoroutine(diceRoll1, diceRoll2));
