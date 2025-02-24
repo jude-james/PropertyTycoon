@@ -64,6 +64,9 @@ public class Board : Singleton<Board>
         // StartCoroutine(Game());
     }
 
+    /// <summary>
+    /// Ends the current player's turn and starts the next player's turn.
+    /// </summary>
     public void EndTurn()
     {
         StartCoroutine(StartNextTurn());
