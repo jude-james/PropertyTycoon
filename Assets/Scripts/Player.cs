@@ -22,7 +22,7 @@ public class Player : MonoBehaviour
     private List<Property> _titleDeeds;
     
     private bool _inJail;
-    private int _roundsInJail = -1;
+    private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
     private const int PostBailAmount = 50;
     private int _getOutOfJailFreeCards;
@@ -76,14 +76,14 @@ public class Player : MonoBehaviour
         
         if (_inJail)
         {
-            if (_roundsInJail == -1)
+            if (_roundsInJail == 0)
             {
                 _roundsInJail++;
                 InJailDecision();
             }
-            else if (_roundsInJail == RoundsInJailLimit)
+            else if (_roundsInJail == RoundsInJailLimit+1)
             {
-                _roundsInJail = -1;
+                _roundsInJail = 0;
                 LeaveJail();
             }
             else
@@ -99,7 +99,7 @@ public class Player : MonoBehaviour
             RollDiceDecision();
         }
     }
-
+    
     protected virtual void RollDiceDecision()
     {
         UIManager.Instance.ShowRollDicePrompt();
@@ -120,7 +120,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideRollDicePrompt();
         
         _diceRoll1 = Random.Range(1, 7);
-        _diceRoll2 = Random.Range(1, 7);
+        _diceRoll2 = _diceRoll1;
         DiceRoll = _diceRoll1 + _diceRoll2;
 
         if (_diceRoll1 == _diceRoll2)
@@ -291,7 +291,7 @@ public class Player : MonoBehaviour
     private IEnumerator LeaveJailCoroutine()
     {
         _inJail = false;
-        _roundsInJail = -1;
+        _roundsInJail = 0;
         
         SetTileIndex(Board.Instance.justVisitingIndex);
         yield return MoveBetweenPositions(Board.Instance.Tiles[Board.Instance.justVisitingIndex].transform.position);

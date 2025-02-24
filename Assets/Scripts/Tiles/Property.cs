@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Tiles
 {
     /// <summary>
-    /// Inherits from tile class, describes a purchasable tiles that can be owned by a player or the bank
+    /// Inherits from tile class, describes a purchasable tile that can be owned by a player or the bank
     /// </summary>
     //[System.Serializable]
     public class Property : Tile

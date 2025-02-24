@@ -2,24 +2,30 @@ using System.Collections;
 using Tiles;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class UIManager : Singleton<UIManager>
 {
+    [Header("Dice")]
     [SerializeField] private Animator dice1Animator;
     [SerializeField] private Animator dice2Animator;
     [SerializeField] private SpriteRenderer dice1;
     [SerializeField] private SpriteRenderer dice2;
     [SerializeField] private Sprite[] landedDiceFaces;
+    
+    [Header("Player Info")]
     [SerializeField] private GameObject[] playerInfoPanels;
 
+    [Header("Game Prompts")]
     [SerializeField] private GameObject rollDicePanel;
     [SerializeField] private GameObject endTurnPanel;
     [SerializeField] private GameObject forSalePanel;
-    [SerializeField] private GameObject goToJailPanel;
     [SerializeField] private GameObject inJailPanel;
     
+    [Header("Game Popups")]
+    [SerializeField] private GameObject goToJailPanel;
+    
+    [Header("Buttons")]
     public Button rollDiceButton;
     public Button endTurnButton;
     

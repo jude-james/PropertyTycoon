@@ -19928,12 +19928,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0b2bf4104c44e16bd45d9f515191559, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tokens:
-  - {fileID: 21300000, guid: 41265eda507fbe7438a5fb3a5a197f17, type: 3}
-  - {fileID: 21300000, guid: 5ce00fef09c8bbd4e823caea9e8b246b, type: 3}
   boardTiles: {fileID: 902769106}
   jailPosition: {fileID: 577432345}
   playerPrefab: {fileID: 3968166511080064115, guid: 5e32f7c45d1a2419bb6e99b26d41d005, type: 3}
+  tokens:
+  - {fileID: 21300000, guid: 41265eda507fbe7438a5fb3a5a197f17, type: 3}
+  - {fileID: 21300000, guid: 5ce00fef09c8bbd4e823caea9e8b246b, type: 3}
   waypointPrefab: {fileID: 6080715695410561673, guid: 5202d9d9c99cb469995646340c515750, type: 3}
   justVisitingIndex: 10
   goIndex: 0
@@ -42747,8 +42747,8 @@ MonoBehaviour:
   rollDicePanel: {fileID: 471742419}
   endTurnPanel: {fileID: 360677343}
   forSalePanel: {fileID: 1735523913}
-  goToJailPanel: {fileID: 386546574}
   inJailPanel: {fileID: 1784517636}
+  goToJailPanel: {fileID: 386546574}
   rollDiceButton: {fileID: 1421332850}
   endTurnButton: {fileID: 1433602628}
   buyButton: {fileID: 433102462}
