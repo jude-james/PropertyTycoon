@@ -6,31 +6,31 @@ namespace Tiles
 {
     public class Utility : Property
     {
-        [SerializeField] private int rent1;
-        [SerializeField] private int rent2;
-        [SerializeField] private string utilType;
+        private int _rent1;
+        private int _rent2;
+        private string _utilType;
         
         public void SetUp(string name, int cost, int rent1, int rent2, string utilType)
         {
-            this.rent1 = rent1;
-            this.rent2 = rent2;
-            this.utilType = utilType;
+            _rent1 = rent1;
+            _rent2 = rent2;
+            _utilType = utilType;
             base.SetUp(name, cost);
         }
 
         protected override void SetCard()
         {
             var prefabName = "UtilElec";
-            if (utilType == "Water")
+            if (_utilType == "Water")
             {
                 prefabName = "UtilWater";
             }
             
-            card = Instantiate(Resources.Load("Prefabs/Cards/" + prefabName)) as GameObject;
-            if (card != null)
+            Card = Instantiate(Resources.Load("Prefabs/Cards/" + prefabName)) as GameObject;
+            if (Card != null)
             {
-                var cardSprite = card.transform.GetChild(0).GetChild(0);
-                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(name);
+                var cardSprite = Card.transform.GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
             }
         }
 
@@ -39,7 +39,7 @@ namespace Tiles
             // figure out rent based on dice roll, this code needs testing
             var amount = CurrentRent * player.DiceRoll;
             player.TakeMoney(amount);
-            ownedBy.GiveMoney(amount);
+            OwnedBy.GiveMoney(amount);
         }
     }
 }

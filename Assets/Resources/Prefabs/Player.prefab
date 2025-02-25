@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3874445577421441101}
   - component: {fileID: 3346819167428425517}
-  - component: {fileID: 6989784356475802651}
   - component: {fileID: 346365368364590492}
   m_Layer: 0
   m_Name: Player
@@ -27,13 +26,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3968166511080064115}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.258819, w: 0.9659259}
-  m_LocalPosition: {x: 15.55, y: -5.29, z: 0}
-  m_LocalScale: {x: 1.15, y: 1.15, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.3, y: 1.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -30}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3346819167428425517
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -86,25 +85,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6989784356475802651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3968166511080064115}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47b2d102806d48cb9aa0c94d8ce16f81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 346365368364590492}
-  <Name>k__BackingField: 
-  money: 1500
-  titleDeeds: []
-  <CurrentTile>k__BackingField: {fileID: 0}
-  getOutOfJailFreeCards: 0
-  inJail: 0
 --- !u!95 &346365368364590492
 Animator:
   serializedVersion: 5
