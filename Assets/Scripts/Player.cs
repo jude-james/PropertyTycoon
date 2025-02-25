@@ -120,7 +120,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideRollDicePrompt();
         
         _diceRoll1 = Random.Range(1, 7);
-        _diceRoll2 = _diceRoll1;
+        _diceRoll2 = Random.Range(1, 7);
         DiceRoll = _diceRoll1 + _diceRoll2;
 
         if (_diceRoll1 == _diceRoll2)
@@ -313,7 +313,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideInJailPrompt();
         
         TakeMoney(PostBailAmount);
-        // TODO Add £50 to free parking 
+        Board.Instance.FreeParkingSum += PostBailAmount;
         
         LeaveJail();
     }

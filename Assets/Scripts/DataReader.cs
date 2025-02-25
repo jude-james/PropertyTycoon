@@ -117,9 +117,15 @@ public class DataReader
                 jail.SetUp(name);
                 Tiles.Add(jail);
             }
+            else if (type == "FreeParking")
+            {
+                var freeParking = boardTiles.GetChild(i).gameObject.AddComponent<FreeParking>();
+                freeParking.SetUp(name);
+                Tiles.Add(freeParking);
+            }
             else
             {
-                // just visiting & free parking are left
+                // Go & Just Visiting are remaining
                 var tile = boardTiles.GetChild(i).gameObject.AddComponent<Tile>();
                 tile.SetUp(name);
                 Tiles.Add(tile);

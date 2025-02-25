@@ -15,16 +15,28 @@ public class Board : Singleton<Board>
     [SerializeField] private Sprite[] tokens; // temporary
 
     public Vector2 JailPosition => jailPosition.position;
-
-    public List<Tile> Tiles { get; private set; }
     
+    public List<Tile> Tiles { get; private set; }
+
+    // TODO update bank UI
+    
+    public int FreeParkingSum
+    {
+        get => _freeParkingSum;
+        set
+        {
+            _freeParkingSum = value;
+            // TODO update sum text UI
+        }
+    }
+    private int _freeParkingSum;
+
     private Player[] _players;
     
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
-    
-    // TODO add free parking sum, then add free parking tile
+
     
     private Player _currentPlayer;
     private int _currentPlayerIndex;
@@ -38,7 +50,7 @@ public class Board : Singleton<Board>
     // Key tiles
     public int justVisitingIndex = 10;
     public int goIndex = 0;
-    
+
     private void Start()
     {
         var dataReader = new DataReader();
