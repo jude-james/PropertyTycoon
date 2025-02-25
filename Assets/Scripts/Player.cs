@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 /// <summary>
-/// Playable gameObject throughout the game, can either be a human player or a bot
+/// Represents a playable game object throughout the game, which can either be a human player or a bot.
 /// </summary>
 public class Player : MonoBehaviour
 {
@@ -58,6 +58,9 @@ public class Player : MonoBehaviour
         SetInfoPanel();
     }
     
+    /// <summary>
+    /// Starts the player's turn, setting them as the active player and updating the UI.
+    /// </summary>
     public void StartTurn()
     {
         _activePlayer = this;
@@ -74,6 +77,9 @@ public class Player : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Determines what should happen to the player when they begin the round in jail
+    /// </summary>
     private void DetermineJailAction()
     {
         if (_roundsInJail == 0)
@@ -93,13 +99,16 @@ public class Player : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Decision point for rolling dice
+    /// </summary>
     protected virtual void RollDiceDecision()
     {
         UIManager.Instance.ShowRollDicePrompt();
     }
     
     /// <summary>
-    /// Event function called when player clicks Roll Dice button
+    /// Handles the rolling of dice and the action to take depending on the dice roll
     /// </summary>
     protected void OnRollDice()
     {
@@ -146,7 +155,7 @@ public class Player : MonoBehaviour
         _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
     }
     
-    private void SetTileIndex(int newTileIndex)
+    private void SetNewTileIndex(int newTileIndex)
     {
         _newTileIndex = Maths.Mod(newTileIndex, Board.Instance.Tiles.Count);
     }
@@ -203,7 +212,7 @@ public class Player : MonoBehaviour
     }
     
     /// <summary>
-    /// Updates players current tile to the newTileIndex and calls tile functionality
+    /// Updates players current tile to the newTileIndex and triggers tile-specific functionality
     /// </summary>
     private void LandOnTile()
     {
@@ -221,7 +230,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Method is called once tile functionality is completed and either ends the turn or allows for another turn
+    /// Called once tile functionality is complete and either ends the turn or allows for another turn
     /// </summary>
     public void CompleteTurn()
     {
@@ -237,13 +246,16 @@ public class Player : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Decision point for ending turn
+    /// </summary>
     protected virtual void EndTurnDecision()
     {
         UIManager.Instance.ShowEndTurnPrompt();
     }
     
     /// <summary>
-    /// Event function called when player clicks End Turn button 
+    /// Handles the player's turn ending and signaling the board to end the turn.
     /// </summary>
     protected void OnEndTurn()
     {
@@ -253,6 +265,9 @@ public class Player : MonoBehaviour
         Board.Instance.EndTurn();
     }
 
+    /// <summary>
+    /// Sends the player to the Jail position and ends their turn
+    /// </summary>
     public void GoToJail()
     {
         StartCoroutine(GoToJailCoroutine());
@@ -276,6 +291,9 @@ public class Player : MonoBehaviour
         EndTurnDecision();
     }
 
+    /// <summary>
+    /// Sends player to the just visiting tile and lands on that tile
+    /// </summary>
     private void LeaveJail()
     {
         StartCoroutine(LeaveJailCoroutine());
@@ -286,18 +304,21 @@ public class Player : MonoBehaviour
         _inJail = false;
         _roundsInJail = 0;
         
-        SetTileIndex(Board.Instance.justVisitingIndex);
+        SetNewTileIndex(Board.Instance.justVisitingIndex);
         yield return MoveBetweenPositions(Board.Instance.Tiles[Board.Instance.justVisitingIndex].transform.position);
         LandOnTile();
     }
 
+    /// <summary>
+    /// Decision point for in jail, shows jail prompt and disables buttons accordingly
+    /// </summary>
     protected virtual void InJailDecision()
     {
         UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards > 0, true);
     }
 
     /// <summary>
-    /// Event function called when player clicks Post bail button
+    /// Player pays fine and leaves jail
     /// </summary>
     protected void OnPostBail()
     {
@@ -312,7 +333,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Event function called when player clicks get out of jail free button 
+    /// Player uses get out of jail card and leaves jail 
     /// </summary>
     protected void OnGetOutOfJailFree()
     {
@@ -324,10 +345,7 @@ public class Player : MonoBehaviour
         _getOutOfJailFreeCards--;
         LeaveJail();
     }
-
-    /// <summary>
-    /// Event function called when player clicks remain in jail button
-    /// </summary>
+    
     protected void OnRemainInJail()
     {
         if (_activePlayer != this) return;
@@ -337,13 +355,17 @@ public class Player : MonoBehaviour
         OnEndTurn();
     }
     
+    /// <summary>
+    /// Decision point for purchasing a property, shows for sale prompt and disables buttons accordingly
+    /// </summary>
+    /// <param name="property"></param>
     public virtual void ForSaleDecision(Property property)
     {
         UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, true, property);
     }
 
     /// <summary>
-    /// Event function called when player clicks Buy button 
+    /// Buys the property that the player is currently on
     /// </summary>
     protected void OnBuy()
     {
@@ -363,7 +385,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Event function called when player clicks Auction button 
+    /// Auctions the property that the player is currently on
     /// </summary>
     protected void OnAuction()
     {
@@ -378,12 +400,20 @@ public class Player : MonoBehaviour
         CompleteTurn();
     }
 
+    /// <summary>
+    /// Gives the player a specified amount of money.
+    /// </summary>
+    /// <param name="amount">The amount of money to give the player.</param>
     public void GiveMoney(int amount)
     {
         _money += amount;
         UpdateInfoPanel();
     }
 
+    /// <summary>
+    /// Takes a specified amount of money from the player.
+    /// </summary>
+    /// <param name="amount">The amount of money to take from the player.</param>
     public void TakeMoney(int amount)
     {
         var newMoney = _money - amount;
@@ -412,6 +442,9 @@ public class Player : MonoBehaviour
         UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
     }
     
+    /// <summary>
+    /// Gets the player info panel from the UI Manager, and then updates the UI to the token, name and money values
+    /// </summary>
     private void SetInfoPanel()
     {
         _infoPanel = UIManager.Instance.GetInfoPanel();
@@ -438,6 +471,10 @@ public class Player : MonoBehaviour
         // TODO loop through title deeds and update titledeedmini UI list
     }
     
+    /// <summary>
+    /// Sets the sprite for the player game object.
+    /// </summary>
+    /// <param name="sprite">The sprite to set for the player.</param>
     public void SetSprite(Sprite sprite)
     {
         _sprite = sprite;

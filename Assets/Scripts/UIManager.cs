@@ -4,6 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the UI elements and interactions in the game.
+/// </summary>
 public class UIManager : Singleton<UIManager>
 {
     [Header("Dice")]
@@ -106,6 +109,10 @@ public class UIManager : Singleton<UIManager>
     }
     public void HideInJailPrompt() => inJailPanel.SetActive(false);
     
+    /// <summary>
+    /// Returns the next available UI panel and makes it visible
+    /// </summary>
+    /// <returns> The UI Panel component </returns>
     public GameObject GetInfoPanel()
     {
         var infoPanel = playerInfoPanels[_nextInfoPanel];
@@ -114,6 +121,11 @@ public class UIManager : Singleton<UIManager>
         return infoPanel;
     }
     
+    /// <summary>
+    /// Sets the active player's information in the UI.
+    /// </summary>
+    /// <param name="name">The name of the active player.</param>
+    /// <param name="sprite">The sprite representing the player.</param>
     public void SetActivePlayerInfo(string name, Sprite sprite)
     {
         _rollDicePanelNameText.SetText(name);
@@ -127,6 +139,11 @@ public class UIManager : Singleton<UIManager>
         _inJailPanelImage.sprite = sprite;
     }
 
+    /// <summary>
+    /// Animates the dice roll and sets the final sprite to the dice roll values
+    /// </summary>
+    /// <param name="diceRoll1">The first dice roll result.</param>
+    /// <param name="diceRoll2">The second dice roll result.</param>
     public IEnumerator AnimateDiceRoll(int diceRoll1, int diceRoll2)
     {
         dice1Animator.enabled = true;
