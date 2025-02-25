@@ -54,17 +54,7 @@ public class Player : MonoBehaviour
     private void Start()
     {
         _animator = GetComponent<Animator>();
-        
-        UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
-        UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
-        
-        UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
-        UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
-        
-        UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
-        UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);
-        UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
-        
+        AssignButtonEventListeners();
         SetInfoPanel();
     }
     
@@ -76,27 +66,30 @@ public class Player : MonoBehaviour
         
         if (_inJail)
         {
-            if (_roundsInJail == 0)
-            {
-                _roundsInJail++;
-                InJailDecision();
-            }
-            else if (_roundsInJail == RoundsInJailLimit+1)
-            {
-                _roundsInJail = 0;
-                LeaveJail();
-            }
-            else
-            {
-                _roundsInJail++;
-                // EndTurnDecision() for allowing the player to choose to build, trade and stuff
-                // Or OnEndTurn() to just straight up skip the player, ask watson games
-                OnEndTurn();
-            }
+            DetermineJailAction();
         }
         else
         {
             RollDiceDecision();
+        }
+    }
+
+    private void DetermineJailAction()
+    {
+        if (_roundsInJail == 0)
+        {
+            _roundsInJail++;
+            InJailDecision();
+        }
+        else if (_roundsInJail == RoundsInJailLimit+1)
+        {
+            _roundsInJail = 0;
+            LeaveJail();
+        }
+        else
+        {
+            _roundsInJail++;
+            OnEndTurn();
         }
     }
     
@@ -404,6 +397,19 @@ public class Player : MonoBehaviour
             _money = newMoney;
             UpdateInfoPanel();
         }
+    }
+    
+    private void AssignButtonEventListeners()
+    {
+        UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
+        UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
+        
+        UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
+        UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
+        
+        UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
+        UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);
+        UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
     }
     
     private void SetInfoPanel()
