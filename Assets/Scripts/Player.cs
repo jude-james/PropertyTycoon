@@ -1,137 +1,208 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-
 /// <summary>
-/// Represents a playable game object throughout the game, which can either be a human or a bot.
-/// This script handles player movement, dice rolling, and interactions with the game board.
+/// Represents a playable game object throughout the game, which can either be a human player or a bot.
 /// </summary>
 public class Player : MonoBehaviour
 {
     private static Player _activePlayer;
 
-    [SerializeField] private Animator animator;
-    
-    [field: SerializeField] public string Name { get; set; }
-    [SerializeField] private int money = 1500;
-    [SerializeField] private List<Property> titleDeeds;
-    [field: SerializeField] public Tile CurrentTile { get; set; }
-    [SerializeField] private int getOutOfJailFreeCards;
-    [SerializeField] private bool inJail;
-    
+    private Animator _animator;
     private Sprite _sprite;
+    private GameObject _infoPanel;
 
+    public string Name { get; set; }
+    private int _money = 1500;
+    private List<Property> _titleDeeds;
+    
+    private bool _inJail;
+    private int _roundsInJail;
+    private const int RoundsInJailLimit = 2;
+    private const int PostBailAmount = 50;
+    private int _getOutOfJailFreeCards;
+    
     public int DiceRoll { get; private set; }
     private int _diceRoll1;
     private int _diceRoll2;
     
-    // TODO use these for rolling a double logic
     private bool _rolledADouble;
     private int _doubleCount;
-    
-    private int _houses;
+    private const int DoubleLimit = 3;
+
+    private int _houses; // These might not be needed
     private int _hotels;
     
+    private Tile _currentTile;
     private int _currentTileIndex;
+    private int _newTileIndex;
+    
+    private bool _passedGo;
+    private const int PassedGoAmount = 200;
     
     private const int MoveSpeed = 10;
-
+    
     private readonly WaitForSeconds _reactionTime = new(0.5f);
     private readonly WaitForSeconds _pauseBetweenTileTime = new(0.1f);
-
-    /// <summary>
-    /// Initializes the player's UI event listeners and sets up the game object.
-    /// </summary>
+    private readonly WaitForSeconds _jailPopupTime = new(1.5f);
+    
     private void Start()
     {
-        UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
-        UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
-        
-        // TODO Assign PlayerInfoPanel Here
+        _animator = GetComponent<Animator>();
+        AssignButtonEventListeners();
+        SetInfoPanel();
     }
-
+    
     /// <summary>
     /// Starts the player's turn, setting them as the active player and updating the UI.
     /// </summary>
     public void StartTurn()
     {
         _activePlayer = this;
+
         UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
-        // Decide here which buttons to gray out or which UI elements to pop up, e.g. if they are in jail
-        if (inJail)
+        
+        if (_inJail)
         {
-            // show specific in jail options
+            DetermineJailAction();
         }
         else
         {
-            // set roll dice panel active
-            UIManager.Instance.rollDicePanel.SetActive(true);
+            RollDiceDecision();
         }
     }
+
     /// <summary>
-    /// Handles the rolling of dice, either by the player or automatically for a bot.
+    /// Determines what should happen to the player when they begin the round in jail
     /// </summary>
-    private void OnRollDice() // Bot would call this automatically instead of it being assigned to a button
+    private void DetermineJailAction()
+    {
+        if (_roundsInJail == 0)
+        {
+            _roundsInJail++;
+            InJailDecision();
+        }
+        else if (_roundsInJail == RoundsInJailLimit+1)
+        {
+            _roundsInJail = 0;
+            LeaveJail();
+        }
+        else
+        {
+            _roundsInJail++;
+            OnEndTurn();
+        }
+    }
+    
+    /// <summary>
+    /// Decision point for rolling dice
+    /// </summary>
+    protected virtual void RollDiceDecision()
+    {
+        UIManager.Instance.ShowRollDicePrompt();
+    }
+    
+    /// <summary>
+    /// Handles the rolling of dice and the action to take depending on the dice roll
+    /// </summary>
+    protected void OnRollDice()
     {
         if (this != _activePlayer) return;
-        UIManager.Instance.rollDicePanel.SetActive(false);
+
+        StartCoroutine(OnRollDiceCoroutine());
+    }
+
+    private IEnumerator OnRollDiceCoroutine()
+    {
+        UIManager.Instance.HideRollDicePrompt();
+        
         _diceRoll1 = Random.Range(1, 7);
         _diceRoll2 = Random.Range(1, 7);
         DiceRoll = _diceRoll1 + _diceRoll2;
-        StartCoroutine(AnimateDiceRoll());
-    }
 
-    /// <summary>
-    /// Animates the dice roll and then moves the player to the new tile.
-    /// </summary>
-    private IEnumerator AnimateDiceRoll()
-    {
-        var diceRollTime = UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
-        yield return diceRollTime;
-        yield return _reactionTime;
-        StartCoroutine(MoveToTile());
-    }
-
-    /// <summary>
-    /// Moves the player to the new tile based on the dice roll.
-    /// </summary>
-    private IEnumerator MoveToTile()
-    {
-        animator.enabled = true;
-        for (int i = _currentTileIndex; i <= _currentTileIndex + DiceRoll; i++)
+        if (_diceRoll1 == _diceRoll2)
         {
-            yield return StartCoroutine(MoveBetweenPositions(Board.Instance.Tiles[i % Board.Instance.Tiles.Count].transform.position));
-            if (i < _currentTileIndex + DiceRoll) // Don't pause between tiles if it's on the last tile
-            {
-                yield return _pauseBetweenTileTime;
-            }
+            _rolledADouble = true;
+            _doubleCount++;
         }
-        animator.enabled = false;
-        transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
+        
+        yield return UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
+        yield return _reactionTime;
+
+        if (_doubleCount == DoubleLimit)
+        {
+            GoToJail();
+        }
+        else
+        {
+            ShiftTileIndex(DiceRoll);
+            StartCoroutine(MoveToTile(false));
+        }
+    }
+    
+    /// <summary>
+    /// Sets the newTileIndex depending on the offset from the currentTileIndex, e.g. offset of -3 sets newTileIndex back 3 spaces
+    /// </summary>
+    /// <param name="offset"> The number of spaces +- from the currentTileIndex </param>
+    private void ShiftTileIndex(int offset)
+    {
+        var newIndex = _currentTileIndex + offset;
+        _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
+    }
+    
+    private void SetNewTileIndex(int newTileIndex)
+    {
+        _newTileIndex = Maths.Mod(newTileIndex, Board.Instance.Tiles.Count);
+    }
+    
+    /// <summary>
+    /// Animates player from currentTileIndex to newTileIndex, then lands player on tile
+    /// </summary>
+    /// <param name="clockwiseOnly">
+    /// Toggles whether the player should move only clockwise around the board or can move anticlockwise.
+    /// Otherwise the direction is determined by the shorter distance
+    /// </param>
+    /// <returns></returns>
+    private IEnumerator MoveToTile(bool clockwiseOnly)
+    {
+        StartAnimation();
+
+        var tileCount = Board.Instance.Tiles.Count;
+        var forwardDistance = (_newTileIndex - _currentTileIndex + tileCount) % tileCount;
+        var backwardDistance =  (_currentTileIndex  - _newTileIndex + tileCount) % tileCount;
+
+        var direction = clockwiseOnly || forwardDistance <= backwardDistance ? 1 : -1;
+
+        for (int i = Maths.Mod(_currentTileIndex + direction,tileCount); i != Maths.Mod(_newTileIndex + direction,tileCount); i = (i + direction + tileCount) % tileCount)
+        {
+            yield return MoveBetweenPositions(Board.Instance.Tiles[i].transform.position);
+            
+            if (i != _newTileIndex) // Don't pause between tile if on the last tile
+                yield return _pauseBetweenTileTime;
+
+            if (i == 0)
+                _passedGo = true;
+        }
+        
+        StopAnimation();
+        
         LandOnTile();
     }
-
-    /// @cond
-    public Tile _testMoveToTile(int diceRoll1, int diceRoll2) {
-        // used for unit test to explicitly return tile
-        int finalRoll = diceRoll1 + diceRoll2;
-        int currentTileIndex = (finalRoll) % Board.Instance.Tiles.Count; // explicitly set to 1st box
-        Tile currentTile = Board.Instance.Tiles[currentTileIndex];
-        return CurrentTile;
-    }
-    /// @endcond
-
+    
     /// <summary>
-    /// Smoothly moves the player between two positions.
+    /// Moves transform from it's current position to the targetPosition
     /// </summary>
-    /// <param name="targetPosition">The target position to move to.</param>
+    /// <param name="targetPosition"> The vector this transform moves to </param>
+    /// <returns></returns>
     private IEnumerator MoveBetweenPositions(Vector2 targetPosition)
     {
         var distance = Vector2.Distance(transform.position, targetPosition);
+
         while (distance > Mathf.Epsilon) 
         {
             transform.position = Vector2.MoveTowards(transform.position, targetPosition, MoveSpeed * Time.deltaTime);
@@ -139,27 +210,194 @@ public class Player : MonoBehaviour
             yield return null;
         }
     }
-
+    
     /// <summary>
-    /// Handles the player landing on a new tile, updating their position and triggering tile-specific actions.
+    /// Updates players current tile to the newTileIndex and triggers tile-specific functionality
     /// </summary>
     private void LandOnTile()
     {
-        _currentTileIndex = (_currentTileIndex + DiceRoll) % Board.Instance.Tiles.Count;
-        CurrentTile = Board.Instance.Tiles[_currentTileIndex];
-        CurrentTile.OnLanded(this);
-        // move this line to tile class so tile controls when the round ends
-        UIManager.Instance.endTurnPanel.SetActive(true);
+        if (_passedGo)
+        {
+            Debug.Log("Passed go");
+            GiveMoney(PassedGoAmount);
+            _passedGo = false;
+        }
+        
+        _currentTileIndex = _newTileIndex;
+        _currentTile = Board.Instance.Tiles[_currentTileIndex];
+        
+        _currentTile.OnLanded(this);
     }
 
     /// <summary>
-    /// Handles the player's turn ending, hiding the end turn panel and signaling the board to end the turn.
+    /// Called once tile functionality is complete and either ends the turn or allows for another turn
     /// </summary>
-    private void OnEndTurn()
+    public void CompleteTurn()
+    {
+        if (_rolledADouble)
+        {
+            _rolledADouble = false;
+            StartTurn();
+        }
+        else
+        {
+            _doubleCount = 0;
+            EndTurnDecision();
+        }
+    }
+
+    /// <summary>
+    /// Decision point for ending turn
+    /// </summary>
+    protected virtual void EndTurnDecision()
+    {
+        UIManager.Instance.ShowEndTurnPrompt();
+    }
+    
+    /// <summary>
+    /// Handles the player's turn ending and signaling the board to end the turn.
+    /// </summary>
+    protected void OnEndTurn()
     {
         if (this != _activePlayer) return;
-        UIManager.Instance.endTurnPanel.SetActive(false);
+        
+        UIManager.Instance.HideEndTurnPrompt();
         Board.Instance.EndTurn();
+    }
+
+    /// <summary>
+    /// Sends the player to the Jail position and ends their turn
+    /// </summary>
+    public void GoToJail()
+    {
+        StartCoroutine(GoToJailCoroutine());
+    }
+
+    private IEnumerator GoToJailCoroutine()
+    {
+        _rolledADouble = false;
+        _doubleCount = 0;
+        
+        UIManager.Instance.ShowGoToJailPopup();
+        yield return _jailPopupTime; 
+        UIManager.Instance.HideGoToJailPopup();
+        
+        StartAnimation();
+        yield return MoveBetweenPositions(Board.Instance.JailPosition);
+        StopAnimation();
+        
+        _inJail = true;
+        
+        EndTurnDecision();
+    }
+
+    /// <summary>
+    /// Sends player to the just visiting tile and lands on that tile
+    /// </summary>
+    private void LeaveJail()
+    {
+        StartCoroutine(LeaveJailCoroutine());
+    }
+
+    private IEnumerator LeaveJailCoroutine()
+    {
+        _inJail = false;
+        _roundsInJail = 0;
+        
+        SetNewTileIndex(Board.Instance.justVisitingIndex);
+        yield return MoveBetweenPositions(Board.Instance.Tiles[Board.Instance.justVisitingIndex].transform.position);
+        LandOnTile();
+    }
+
+    /// <summary>
+    /// Decision point for in jail, shows jail prompt and disables buttons accordingly
+    /// </summary>
+    protected virtual void InJailDecision()
+    {
+        UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards > 0, true);
+    }
+
+    /// <summary>
+    /// Player pays fine and leaves jail
+    /// </summary>
+    protected void OnPostBail()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideInJailPrompt();
+        
+        TakeMoney(PostBailAmount);
+        Board.Instance.FreeParkingSum += PostBailAmount;
+        
+        LeaveJail();
+    }
+
+    /// <summary>
+    /// Player uses get out of jail card and leaves jail 
+    /// </summary>
+    protected void OnGetOutOfJailFree()
+    {
+        if (_activePlayer != this) return;
+
+        UIManager.Instance.HideInJailPrompt();
+        
+        // TODO make UpdateGetOutOfJailFree() or something that changes the UI element
+        _getOutOfJailFreeCards--;
+        LeaveJail();
+    }
+    
+    protected void OnRemainInJail()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideInJailPrompt();
+
+        OnEndTurn();
+    }
+    
+    /// <summary>
+    /// Decision point for purchasing a property, shows for sale prompt and disables buttons accordingly
+    /// </summary>
+    /// <param name="property"></param>
+    public virtual void ForSaleDecision(Property property)
+    {
+        UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, true, property);
+    }
+
+    /// <summary>
+    /// Buys the property that the player is currently on
+    /// </summary>
+    protected void OnBuy()
+    {
+        if (this != _activePlayer) return;
+        
+        UIManager.Instance.HideForSalePrompt();
+        
+        Debug.Log("Buying property...");
+
+        var property = (Property)_currentTile;
+        
+        // TODO finish buy logic
+        // TakeMoney(property.Cost);
+        // ... 
+        
+        CompleteTurn();
+    }
+
+    /// <summary>
+    /// Auctions the property that the player is currently on
+    /// </summary>
+    protected void OnAuction()
+    {
+        if (this != _activePlayer) return;
+        
+        UIManager.Instance.HideForSalePrompt();
+        
+        Debug.Log("Auctioning property...");
+        
+        // TODO auction
+        
+        CompleteTurn();
     }
 
     /// <summary>
@@ -168,8 +406,8 @@ public class Player : MonoBehaviour
     /// <param name="amount">The amount of money to give the player.</param>
     public void GiveMoney(int amount)
     {
-        money += amount;
-        // TODO update UI money text, with event?
+        _money += amount;
+        UpdateInfoPanel();
     }
 
     /// <summary>
@@ -178,15 +416,61 @@ public class Player : MonoBehaviour
     /// <param name="amount">The amount of money to take from the player.</param>
     public void TakeMoney(int amount)
     {
-        money -= amount;
-        // TODO update UI money text 
+        var newMoney = _money - amount;
 
-        if (money <= 0)
+        if (newMoney < 0)
         {
             Debug.Log("Mortgage or go bankrupt");
         }
+        else
+        {
+            _money = newMoney;
+            UpdateInfoPanel();
+        }
+    }
+    
+    private void AssignButtonEventListeners()
+    {
+        UIManager.Instance.rollDiceButton.onClick.AddListener(OnRollDice);
+        UIManager.Instance.endTurnButton.onClick.AddListener(OnEndTurn);
+        
+        UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
+        UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
+        
+        UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
+        UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);
+        UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
+    }
+    
+    /// <summary>
+    /// Gets the player info panel from the UI Manager, and then updates the UI to the token, name and money values
+    /// </summary>
+    private void SetInfoPanel()
+    {
+        _infoPanel = UIManager.Instance.GetInfoPanel();
+
+        var token = _infoPanel.transform.GetChild(0).GetComponent<Image>();
+        token.sprite = _sprite;
+        
+        var nameText = _infoPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        nameText.SetText(Name);
+
+        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        moneyText.SetText("£"+_money);
     }
 
+    private void UpdateInfoPanel()
+    {
+        // TODO make variables global and separate into multiple methods
+        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        moneyText.SetText("£"+_money);
+
+        var getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
+        getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
+        
+        // TODO loop through title deeds and update titledeedmini UI list
+    }
+    
     /// <summary>
     /// Sets the sprite for the player game object.
     /// </summary>
@@ -195,5 +479,16 @@ public class Player : MonoBehaviour
     {
         _sprite = sprite;
         GetComponent<SpriteRenderer>().sprite = _sprite;
+    }
+
+    private void StartAnimation()
+    {
+        _animator.enabled = true;
+    }
+
+    private void StopAnimation()
+    {
+        _animator.enabled = false;
+        transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
     }
 }

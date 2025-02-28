@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
-using UnityEditor.SearchService;
 using UnityEngine;
 
 /// <summary>
@@ -9,18 +8,35 @@ using UnityEngine;
 /// </summary>
 public class Board : Singleton<Board>
 {
-    [field: SerializeField] public List<Tile> Tiles { get; private set; }
-    
-    [SerializeField] private Player[] players;
-    
-    [SerializeField] private Sprite[] tokens; // temporary until character select is done
-
     [SerializeField] private Transform boardTiles;
-    [SerializeField] private Player playerPrefab;
+    [SerializeField] private Transform jailPosition;
+    [SerializeField] private GameObject playerPrefab;
+    
+    [SerializeField] private Sprite[] tokens; // temporary
 
+    public Vector2 JailPosition => jailPosition.position;
+    
+    public List<Tile> Tiles { get; private set; }
+
+    // TODO update bank UI
+    
+    public int FreeParkingSum
+    {
+        get => _freeParkingSum;
+        set
+        {
+            _freeParkingSum = value;
+            // TODO update sum text UI
+        }
+    }
+    private int _freeParkingSum;
+
+    private Player[] _players;
+    
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
+
     
     private Player _currentPlayer;
     private int _currentPlayerIndex;
@@ -30,6 +46,11 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform waypointPrefab;
     [SerializeField] private float[,] positions = new float[2,40];
     
+    // This is temporary and not very robust, will change when action cards are implemented
+    // Key tiles
+    public int justVisitingIndex = 10;
+    public int goIndex = 0;
+
     private void Start()
     {
         var dataReader = new DataReader();
@@ -44,24 +65,19 @@ public class Board : Singleton<Board>
         _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
         _potLuckCardData = dataReader.PotLuckCards;
         
-        // For now, we will start with humans, and testing all 6 tokens
-        players = new Player[tokens.Length];
+        // Manually assigning players for testing purposes, will get players from main menu later
+        _players = new Player[2];
 
-        for (var i = 0; i < players.Length; i++)
-        {
-            players[i] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation);
-            players[i].SetSprite(tokens[i]);
-            players[i].Name = tokens[i].name;
-            players[i].CurrentTile = Tiles[0];
-        }
+        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
+        _players[0].SetSprite(tokens[0]);
+        _players[0].Name = tokens[0].name;
         
-        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        _players[1].SetSprite(tokens[1]);
+        _players[1].Name = tokens[1].name;
+        
+        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
         _currentPlayer.StartTurn();
-        
-        positionWaypoints();
-        giveSpacesPositions();
-        
-        // StartCoroutine(Game());
     }
 
     /// <summary>
@@ -76,77 +92,9 @@ public class Board : Singleton<Board>
     {
         yield return _timeBetweenTurns;
         _currentPlayerIndex++;
-        _currentPlayer = players[_currentPlayerIndex % players.Length];
+        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
         _currentPlayer.StartTurn();
     }
-    
-    /*
-    private IEnumerator Game() // This function and NextTurn are quite shitty but it's is all I could get working - It will be changed
-    {
-        while (true)
-        {
-            // loop through players
-            _currentPlayer = players[_currentPlayerIndex % players.Length];
-
-            _endTurn = false;
-            //Starts turn then waits for endTurn to become true
-            StartCoroutine(NextTurn(_currentPlayer));
-            while (true) 
-            {
-                if (_endTurn == true)
-                {
-                    break; 
-                } 
-                yield return null; 
-            }
-            Debug.Log(_currentPlayer.Name + " turn over");
-
-            // once player is completely finished with turn AKA they press "end turn", increment and start over
-            _currentPlayerIndex++;
-        }
-    }
-    
-    private IEnumerator NextTurn(Player player)
-    {
-        // Input will be added later, for now the player will just move
-
-        // Movement
-        int landedPos = player.Move(RollDice()) % Tiles.Count;
-        Tile landedTile = Tiles[landedPos];
-        _currentPlayer.CurrentTile = landedTile;
-        
-        // I have swapped to the manual points here, makes it a little easier, and for squares like just visiting the players sit in the corner
-        _currentPlayer.transform.position = _currentPlayer.CurrentTile.transform.position;
-        // _currentPlayer.transform.position = _currentPlayer.CurrentTile.getPosition();
-        
-        // The plan was to implement spaces using a linked list which we will do if needed when coding the space class
-
-        Debug.Log(_currentPlayer.Name + " Landed at position: " + landedPos);
-        //Debug.Log(_currentPlayer.Name + " Landed at space: " + _currentPlayer.CurrentTile.Name);
-
-        Debug.Log("Press space to end turn");
-        while (true) {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                yield return null; 
-                break;
-            } 
-            yield return null;  
-        }
-        _endTurn = true;
-    }
-
-    private int RollDice()
-    {
-        // Returns result of rolling two dice
-        int dice1 = Random.Range(1, 6);
-        int dice2 = Random.Range(1, 6);
-        Debug.Log("Dice 1: " + dice1);
-        Debug.Log("Dice 2: " + dice2);
-        // Will add screen output showing each dice value
-        return dice1 + dice2;
-    }
-    */
     
     /*Creates space position on the board using absolute values, 
     this is probably not the most practical implementation

@@ -5,31 +5,31 @@ namespace Tiles
 {
     public class Station : Property
     {
-        [SerializeField] private int rent1;
-        [SerializeField] private int rent2;
-        [SerializeField] private int rent3;
-        [SerializeField] private int rent4;
+        private int _rent1;
+        private int _rent2;
+        private int _rent3;
+        private int _rent4;
         
         public void SetUp(string name, int cost, int rent1, int rent2, int rent3, int rent4)
         {
-            this.rent1 = rent1;
-            this.rent2 = rent2;
-            this.rent3 = rent3;
-            this.rent4 = rent4;
+            _rent1 = rent1;
+            _rent2 = rent2;
+            _rent3 = rent3;
+            _rent4 = rent4;
             base.SetUp(name, cost);
         }
 
         protected override void SetCard()
         {
-            card = Instantiate(Resources.Load("Prefabs/Cards/Station")) as GameObject;
-            if (card != null)
+            Card = Instantiate(Resources.Load("Prefabs/Cards/Station")) as GameObject;
+            if (Card != null)
             {
-                var cardSprite = card.transform.GetChild(0).GetChild(0);
-                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(name);
-                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("£"+rent1);
-                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("£"+rent2);
-                cardSprite.GetChild(3).GetComponent<TMP_Text>().SetText("£"+rent3);
-                cardSprite.GetChild(4).GetComponent<TMP_Text>().SetText("£"+rent4);
+                var cardSprite = Card.transform.GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
+                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("£"+_rent1);
+                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("£"+_rent2);
+                cardSprite.GetChild(3).GetComponent<TMP_Text>().SetText("£"+_rent3);
+                cardSprite.GetChild(4).GetComponent<TMP_Text>().SetText("£"+_rent4);
             }
         }
 
@@ -37,7 +37,7 @@ namespace Tiles
         {
             // TODO figure out rent based on how many stations OwnedBy owns
             player.TakeMoney(CurrentRent);
-            ownedBy.GiveMoney(CurrentRent);
+            OwnedBy.GiveMoney(CurrentRent);
         }
     }
 }
