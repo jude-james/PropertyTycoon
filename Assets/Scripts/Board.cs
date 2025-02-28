@@ -51,6 +51,35 @@ public class Board : Singleton<Board>
     public int justVisitingIndex = 10;
     public int goIndex = 0;
 
+    public void testBoardInit() {
+        // ToDo: ask rudy/jude about moving init logic into 1 central protected method
+        // so it's accesseble in /Tests for unit tests but also for Start()
+        // for now logic is duplicated
+        var dataReader = new DataReader();
+        dataReader.ReadBoardData(boardTiles);
+        Tiles = dataReader.Tiles;
+        
+        // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
+        var titleDeeds = dataReader.Properties;
+        _bank = new Bank(32, 12, titleDeeds);
+        
+        dataReader.ReadCardData();
+        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
+        _potLuckCardData = dataReader.PotLuckCards;
+        
+        // Manually assigning players for testing purposes, will get players from main menu later
+        _players = new Player[2];
+
+        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
+        _players[0].SetSprite(tokens[0]);
+        _players[0].Name = tokens[0].name;
+        
+        _players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        _players[1].SetSprite(tokens[1]);
+        _players[1].Name = tokens[1].name;
+
+    }
+
     private void Start()
     {
         var dataReader = new DataReader();

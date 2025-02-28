@@ -83,5 +83,9 @@ namespace Tiles
         {
             return position;
         }
+        
+        public string getName() {
+            return Name;
+        }
     }
 }
