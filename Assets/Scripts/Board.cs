@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Tiles;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -19,6 +20,8 @@ public class Board : Singleton<Board>
     public List<Tile> Tiles { get; private set; }
 
     // TODO update bank UI
+    private GameObject _bankInfoPanel;
+    private TMP_Text _freeParkingSumText;
     
     public int FreeParkingSum
     {
@@ -26,7 +29,7 @@ public class Board : Singleton<Board>
         set
         {
             _freeParkingSum = value;
-            // TODO update sum text UI
+            StartCoroutine(UIManager.Instance.AnimateMoney(_freeParkingSumText, _freeParkingSum));
         }
     }
     private int _freeParkingSum;
@@ -36,7 +39,6 @@ public class Board : Singleton<Board>
     private Bank _bank;
     private Dictionary<string, string> _opportunityKnocksCardData = new();
     private Dictionary<string, string> _potLuckCardData = new();
-
     
     private Player _currentPlayer;
     private int _currentPlayerIndex;
@@ -64,6 +66,9 @@ public class Board : Singleton<Board>
         dataReader.ReadCardData();
         _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
         _potLuckCardData = dataReader.PotLuckCards;
+
+        _bankInfoPanel = UIManager.Instance.BankInfoPanel;
+        _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         
         // Manually assigning players for testing purposes, will get players from main menu later
         _players = new Player[2];

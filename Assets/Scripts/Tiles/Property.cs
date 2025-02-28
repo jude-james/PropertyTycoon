@@ -35,20 +35,19 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
-            if (Mortgaged || OwnedBy == player)
+            if (OwnedBy == null)
             {
-                // do nothing
-                player.CompleteTurn();
+                // if property is owned by bank, player can buy for the Cost, or auction
+                player.ForSaleDecision(this);
             }
-            else if (OwnedBy != null)
+            else if (Mortgaged || OwnedBy == player || OwnedBy.InJail)
             {
-                // player pays rent to OwnedBy
-                PayRent(player);
+                // If property is mortgaged, player is already the owner, or the owner is in jail do nothing
+                player.CompleteTurn();
             }
             else
             {
-                // player buy for the Cost, or auctions
-                player.ForSaleDecision(this);
+                PayRent(player);
             }
         }
         
@@ -58,8 +57,6 @@ namespace Tiles
         /// <param name="player"> The player that needs to pay rent to the owner </param>
         protected virtual void PayRent(Player player)
         {
-            // TODO check if player is in jail first, or do this in the give money part, since i think
-            // if they are in jail, there is no situation where they can get money
         }
     }
 }

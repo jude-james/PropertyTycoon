@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Tiles;
 using TMPro;
@@ -16,9 +17,12 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private SpriteRenderer dice2;
     [SerializeField] private Sprite[] landedDiceFaces;
     
-    [Header("Player Info")]
-    [SerializeField] private GameObject[] playerInfoPanels;
+    [Header("Info UI")]
+    [SerializeField] public GameObject[] playerInfoPanels;
 
+    [field: SerializeField] public GameObject BankInfoPanel { get; private set; }
+    [field: SerializeField] public GameObject FreeParkingInfoPanel { get; private set; }
+    
     [Header("Game Prompts")]
     [SerializeField] private GameObject rollDicePanel;
     [SerializeField] private GameObject endTurnPanel;
@@ -57,6 +61,8 @@ public class UIManager : Singleton<UIManager>
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
 
     private int _nextInfoPanel;
+
+    [SerializeField] private float moneyChangeDuration;
     
     private void Awake()
     {
@@ -153,5 +159,24 @@ public class UIManager : Singleton<UIManager>
         dice2Animator.enabled = false;
         dice1.sprite = landedDiceFaces[diceRoll1-1];
         dice2.sprite = landedDiceFaces[diceRoll2-1];
+    }
+
+    /// <summary>
+    /// Interpolates the money text value to the newValue, for the duration
+    /// </summary>
+    /// <param name="money"> The TMP Text component </param>
+    /// <param name="newValue"> The integer value to set the TMP Text component to </param>
+    /// <returns></returns>
+    public IEnumerator AnimateMoney(TMP_Text money, int newValue)
+    {
+        var currentValue = int.Parse(money.text.Substring(1, money.text.Length - 1));
+
+        float elapsedTime = 0;
+        while (elapsedTime < moneyChangeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            money.SetText("£" + Math.Round(Mathf.Lerp(currentValue, newValue, elapsedTime / moneyChangeDuration)));
+            yield return null;
+        }
     }
 }

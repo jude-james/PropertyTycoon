@@ -17,11 +17,14 @@ public class Player : MonoBehaviour
     private Sprite _sprite;
     private GameObject _infoPanel;
 
+    private TMP_Text _moneyText;
+    private TMP_Text _getOutOfJailFreeCardsText;
+
     public string Name { get; set; }
     private int _money = 1500;
     private List<Property> _titleDeeds;
     
-    private bool _inJail;
+    public bool InJail { get; private set; }
     private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
     private const int PostBailAmount = 50;
@@ -42,7 +45,6 @@ public class Player : MonoBehaviour
     private int _currentTileIndex;
     private int _newTileIndex;
     
-    private bool _passedGo;
     private const int PassedGoAmount = 200;
     
     private const int MoveSpeed = 10;
@@ -67,7 +69,7 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
         
-        if (_inJail)
+        if (InJail)
         {
             DetermineJailAction();
         }
@@ -185,8 +187,8 @@ public class Player : MonoBehaviour
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
                 yield return _pauseBetweenTileTime;
 
-            if (i == 0)
-                _passedGo = true;
+            if (i == Board.Instance.goIndex)
+                GiveMoney(PassedGoAmount);
         }
         
         StopAnimation();
@@ -216,13 +218,6 @@ public class Player : MonoBehaviour
     /// </summary>
     private void LandOnTile()
     {
-        if (_passedGo)
-        {
-            Debug.Log("Passed go");
-            GiveMoney(PassedGoAmount);
-            _passedGo = false;
-        }
-        
         _currentTileIndex = _newTileIndex;
         _currentTile = Board.Instance.Tiles[_currentTileIndex];
         
@@ -286,7 +281,7 @@ public class Player : MonoBehaviour
         yield return MoveBetweenPositions(Board.Instance.JailPosition);
         StopAnimation();
         
-        _inJail = true;
+        InJail = true;
         
         EndTurnDecision();
     }
@@ -301,7 +296,7 @@ public class Player : MonoBehaviour
 
     private IEnumerator LeaveJailCoroutine()
     {
-        _inJail = false;
+        InJail = false;
         _roundsInJail = 0;
         
         SetNewTileIndex(Board.Instance.justVisitingIndex);
@@ -407,7 +402,7 @@ public class Player : MonoBehaviour
     public void GiveMoney(int amount)
     {
         _money += amount;
-        UpdateInfoPanel();
+        StartCoroutine(UIManager.Instance.AnimateMoney(_moneyText, _money));
     }
 
     /// <summary>
@@ -425,7 +420,7 @@ public class Player : MonoBehaviour
         else
         {
             _money = newMoney;
-            UpdateInfoPanel();
+            StartCoroutine(UIManager.Instance.AnimateMoney(_moneyText, _money));
         }
     }
     
@@ -443,7 +438,7 @@ public class Player : MonoBehaviour
     }
     
     /// <summary>
-    /// Gets the player info panel from the UI Manager, and then updates the UI to the token, name and money values
+    /// Gets the player info panel from the UI Manager, and then initialises the UI to the player values
     /// </summary>
     private void SetInfoPanel()
     {
@@ -455,22 +450,20 @@ public class Player : MonoBehaviour
         var nameText = _infoPanel.transform.GetChild(1).GetComponent<TMP_Text>();
         nameText.SetText(Name);
 
-        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
-        moneyText.SetText("£"+_money);
+        _moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        _moneyText.SetText("£"+_money);
+        
+        _getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
+        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
     }
 
-    private void UpdateInfoPanel()
+    private void UpdateGetOutOfJailFreeCardNumber()
     {
-        // TODO make variables global and separate into multiple methods
-        var moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
-        moneyText.SetText("£"+_money);
-
-        var getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
-        getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
+        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
         
         // TODO loop through title deeds and update titledeedmini UI list
     }
-    
+
     /// <summary>
     /// Sets the sprite for the player game object.
     /// </summary>
