@@ -13,8 +13,8 @@ public class Player : MonoBehaviour
 {
     private static Player _activePlayer;
 
+    public Sprite Sprite { get; private set; }
     private Animator _animator;
-    private Sprite _sprite;
     private GameObject _infoPanel;
 
     private TMP_Text _moneyText;
@@ -67,7 +67,7 @@ public class Player : MonoBehaviour
     {
         _activePlayer = this;
 
-        UIManager.Instance.SetActivePlayerInfo(Name, _sprite);
+        UIManager.Instance.SetActivePlayerInfo(Name, Sprite);
         
         if (InJail)
         {
@@ -89,7 +89,7 @@ public class Player : MonoBehaviour
             _roundsInJail++;
             InJailDecision();
         }
-        else if (_roundsInJail == RoundsInJailLimit+1)
+        else if (_roundsInJail == RoundsInJailLimit)
         {
             _roundsInJail = 0;
             LeaveJail();
@@ -368,13 +368,11 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.HideForSalePrompt();
         
-        Debug.Log("Buying property...");
-
         var property = (Property)_currentTile;
         
-        // TODO finish buy logic
-        // TakeMoney(property.Cost);
-        // ... 
+        TakeMoney(property.Cost);
+        property.OwnedBy = this;
+        // TODO update property list for player and bank and update mini title deed UI
         
         CompleteTurn();
     }
@@ -391,6 +389,7 @@ public class Player : MonoBehaviour
         Debug.Log("Auctioning property...");
         
         // TODO auction
+        // signal to the board class, board class will loop through players again and give them choice
         
         CompleteTurn();
     }
@@ -415,6 +414,7 @@ public class Player : MonoBehaviour
 
         if (newMoney < 0)
         {
+            // TODO deal with what to do when they go below zero, maybe return a bool to signal if take money is possible
             Debug.Log("Mortgage or go bankrupt");
         }
         else
@@ -445,7 +445,7 @@ public class Player : MonoBehaviour
         _infoPanel = UIManager.Instance.GetInfoPanel();
 
         var token = _infoPanel.transform.GetChild(0).GetComponent<Image>();
-        token.sprite = _sprite;
+        token.sprite = Sprite;
         
         var nameText = _infoPanel.transform.GetChild(1).GetComponent<TMP_Text>();
         nameText.SetText(Name);
@@ -470,8 +470,8 @@ public class Player : MonoBehaviour
     /// <param name="sprite">The sprite to set for the player.</param>
     public void SetSprite(Sprite sprite)
     {
-        _sprite = sprite;
-        GetComponent<SpriteRenderer>().sprite = _sprite;
+        Sprite = sprite;
+        GetComponent<SpriteRenderer>().sprite = Sprite;
     }
 
     private void StartAnimation()

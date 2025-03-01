@@ -31,6 +31,7 @@ public class UIManager : Singleton<UIManager>
     
     [Header("Game Popups")]
     [SerializeField] private GameObject goToJailPanel;
+    [SerializeField] private GameObject payRentPanel;
     
     [Header("Buttons")]
     public Button rollDiceButton;
@@ -57,6 +58,12 @@ public class UIManager : Singleton<UIManager>
 
     private TMP_Text _inJailPanelNameText;
     private Image _inJailPanelImage;
+
+    private TMP_Text _payRentPanelRentText;
+    private TMP_Text _payRentPanelPlayerNameText;
+    private Image _payRentPanelPlayerImage;
+    private TMP_Text _payRentPanelOwnedByNameText;
+    private Image _payRentPanelOwnedByImage;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
 
@@ -79,6 +86,12 @@ public class UIManager : Singleton<UIManager>
 
         _inJailPanelNameText = inJailPanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _inJailPanelImage = inJailPanel.transform.GetChild(2).GetComponent<Image>();
+
+        _payRentPanelRentText = payRentPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _payRentPanelPlayerNameText = payRentPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        _payRentPanelPlayerImage = payRentPanel.transform.GetChild(3).GetComponent<Image>();
+        _payRentPanelOwnedByNameText = payRentPanel.transform.GetChild(5).GetComponent<TMP_Text>();
+        _payRentPanelOwnedByImage = payRentPanel.transform.GetChild(6).GetComponent<Image>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
@@ -114,6 +127,16 @@ public class UIManager : Singleton<UIManager>
         inJailPanel.SetActive(true);
     }
     public void HideInJailPrompt() => inJailPanel.SetActive(false);
+
+    public void ShowPayRentPopup(int rent, string ownedByName, Sprite ownedBySprite)
+    {
+        _payRentPanelRentText.SetText("£" + rent);
+        _payRentPanelOwnedByNameText.SetText(ownedByName);
+        _payRentPanelOwnedByImage.sprite = ownedBySprite;
+        
+        payRentPanel.SetActive(true);
+    }
+    public void HidePayRentPopup() => payRentPanel.SetActive(false);
     
     /// <summary>
     /// Returns the next available UI panel and makes it visible
@@ -143,6 +166,9 @@ public class UIManager : Singleton<UIManager>
         
         _inJailPanelNameText.SetText(name);
         _inJailPanelImage.sprite = sprite;
+        
+        _payRentPanelPlayerNameText.SetText(name);
+        _payRentPanelPlayerImage.sprite = sprite;
     }
 
     /// <summary>

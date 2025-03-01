@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -9,14 +10,15 @@ namespace Tiles
     //[System.Serializable]
     public class Property : Tile
     {
-        protected Player OwnedBy; // initially owned by the bank, null can be the bank for now
+        public Player OwnedBy { protected get; set; } // initially owned by the bank, null can be the bank for now
         public int Cost { get; private set; }
         protected bool Mortgaged;
+        protected int CurrentRent; // Although each property manages rent differently, they all still have a current rent value
 
         private GameObject _mortgagedCard; // Each property can be turned over to see the mortgage into
-
-        protected int CurrentRent; // Although each property manages rent differently, they all still have a current rent value
         
+        private readonly WaitForSeconds _payRentPopupTime = new(3);
+
         protected void SetUp(string name, int cost)
         {
             Cost = cost;
@@ -57,6 +59,15 @@ namespace Tiles
         /// <param name="player"> The player that needs to pay rent to the owner </param>
         protected virtual void PayRent(Player player)
         {
+            StartCoroutine(PayRentCoroutine(player));
+        }
+
+        private IEnumerator PayRentCoroutine(Player player)
+        {
+            UIManager.Instance.ShowPayRentPopup(CurrentRent, OwnedBy.Name, OwnedBy.Sprite);
+            yield return _payRentPopupTime;
+            UIManager.Instance.HidePayRentPopup();
+            player.CompleteTurn();
         }
     }
 }

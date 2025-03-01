@@ -16,6 +16,7 @@ namespace Tiles
             _rent2 = rent2;
             _rent3 = rent3;
             _rent4 = rent4;
+            CurrentRent = _rent1;
             base.SetUp(name, cost);
         }
 
@@ -38,6 +39,8 @@ namespace Tiles
             // TODO figure out rent based on how many stations OwnedBy owns
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
+            
+            base.PayRent(player);
         }
     }
 }

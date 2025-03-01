@@ -15,6 +15,7 @@ namespace Tiles
             _rent1 = rent1;
             _rent2 = rent2;
             _utilType = utilType;
+            CurrentRent = _rent1;
             base.SetUp(name, cost);
         }
 
@@ -36,10 +37,12 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // figure out rent based on dice roll, this code needs testing
-            var amount = CurrentRent * player.DiceRoll;
-            player.TakeMoney(amount);
-            OwnedBy.GiveMoney(amount);
+            // TODO figure out rent current rent based on how many utilities are owned and the dice roll
+            CurrentRent = _rent1 * player.DiceRoll;
+            player.TakeMoney(CurrentRent);
+            OwnedBy.GiveMoney(CurrentRent);
+            
+            base.PayRent(player);
         }
     }
 }

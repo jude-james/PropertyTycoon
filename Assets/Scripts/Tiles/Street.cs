@@ -26,6 +26,7 @@ namespace Tiles
             _improvedRent = improvedRent;
             _houseCost = houseCost;
             _hotelCost = hotelCost;
+            CurrentRent = _initialRent;
             base.SetUp(name, cost);
         }
 
@@ -52,6 +53,8 @@ namespace Tiles
             // TODO figure out rent based on houses, hotels and if OwnedBy owns the set
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
+            
+            base.PayRent(player);
         }
     }
 }
