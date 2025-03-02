@@ -170,7 +170,7 @@ public class Player : MonoBehaviour
     /// Otherwise the direction is determined by the shorter distance
     /// </param>
     /// <returns></returns>
-    private IEnumerator MoveToTile(bool clockwiseOnly)
+    private IEnumerator MoveToTile(bool clockwiseOnly) // TODO turn into optional clockwise or anticlockwise
     {
         StartAnimation();
 

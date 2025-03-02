@@ -13,15 +13,18 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform jailPosition;
     [SerializeField] private GameObject playerPrefab;
     
+    // TODO update bank UI
+    private GameObject _bankInfoPanel;
+    private TMP_Text _freeParkingSumText;
+    
     [SerializeField] private Sprite[] tokens; // temporary
 
     public Vector2 JailPosition => jailPosition.position;
     
     public List<Tile> Tiles { get; private set; }
 
-    // TODO update bank UI
-    private GameObject _bankInfoPanel;
-    private TMP_Text _freeParkingSumText;
+    public Queue<ActionCard> PotLuckCards { get; private set; }
+    public Queue<ActionCard> OpportunityKnocksCards { get; private set; }
     
     public int FreeParkingSum
     {
@@ -37,8 +40,6 @@ public class Board : Singleton<Board>
     private Player[] _players;
     
     private Bank _bank;
-    private Dictionary<string, string> _opportunityKnocksCardData = new();
-    private Dictionary<string, string> _potLuckCardData = new();
     
     private Player _currentPlayer;
     private int _currentPlayerIndex;
@@ -50,23 +51,30 @@ public class Board : Singleton<Board>
     
     // This is temporary and not very robust, will change when action cards are implemented
     // Key tiles
+    // TODO just make some sort of findIndex(name), probably already exists
     public int justVisitingIndex = 10;
     public int goIndex = 0;
 
     private void Start()
     {
         var dataReader = new DataReader();
+        
         dataReader.ReadBoardData(boardTiles);
         Tiles = dataReader.Tiles;
+        
+        dataReader.ReadCardData();
+        PotLuckCards = dataReader.PotLuckCards;
+        OpportunityKnocksCards = dataReader.OpportunityKnocksCards;
+                
+        foreach (var actionCard in OpportunityKnocksCards)
+        {
+            Debug.Log(actionCard.ActionType);
+        }
         
         // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
         var titleDeeds = dataReader.Properties;
         _bank = new Bank(32, 12, titleDeeds);
         
-        dataReader.ReadCardData();
-        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
-        _potLuckCardData = dataReader.PotLuckCards;
-
         _bankInfoPanel = UIManager.Instance.BankInfoPanel;
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         

@@ -48,7 +48,7 @@ namespace Tiles
             }
         }
 
-        private void ShowCard()
+        protected void ShowCard()
         {
             if (Card != null)
             {
@@ -56,7 +56,7 @@ namespace Tiles
             }
         }
 
-        private void HideCard()
+        protected void HideCard()
         {
             if (Card != null)
             {
@@ -64,12 +64,12 @@ namespace Tiles
             }
         }
 
-        private void OnMouseEnter()
+        protected virtual void OnMouseEnter()
         {
             ShowCard();
         }
 
-        private void OnMouseExit()
+        protected virtual void OnMouseExit()
         {
             HideCard();
         }
