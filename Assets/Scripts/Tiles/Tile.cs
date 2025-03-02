@@ -8,7 +8,7 @@ namespace Tiles
     /// </summary>
     public class Tile : MonoBehaviour
     {
-        protected string Name { get; private set; }
+        protected string Name { get; set; }
         public GameObject Card { get; protected set; }
         
         [SerializeField] private Vector2 position;

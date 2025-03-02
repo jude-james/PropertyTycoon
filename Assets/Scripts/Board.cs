@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tiles;
 using TMPro;
 using UnityEngine;
@@ -63,13 +64,9 @@ public class Board : Singleton<Board>
         Tiles = dataReader.Tiles;
         
         dataReader.ReadCardData();
-        PotLuckCards = dataReader.PotLuckCards;
-        OpportunityKnocksCards = dataReader.OpportunityKnocksCards;
-                
-        foreach (var actionCard in OpportunityKnocksCards)
-        {
-            Debug.Log(actionCard.ActionType);
-        }
+        var rng = new System.Random();
+        PotLuckCards = new Queue<ActionCard>(dataReader.PotLuckCards.ToList().OrderBy(_ => rng.Next()));
+        OpportunityKnocksCards = new Queue<ActionCard>(dataReader.OpportunityKnocksCards.ToList().OrderBy(_ => rng.Next()));
         
         // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
         var titleDeeds = dataReader.Properties;

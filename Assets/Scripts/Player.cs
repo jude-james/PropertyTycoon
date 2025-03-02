@@ -11,6 +11,8 @@ using Random = UnityEngine.Random;
 /// </summary>
 public class Player : MonoBehaviour
 {
+    public int moveTest;
+    
     private static Player _activePlayer;
 
     public Sprite Sprite { get; private set; }
@@ -142,7 +144,7 @@ public class Player : MonoBehaviour
         }
         else
         {
-            ShiftTileIndex(DiceRoll);
+            ShiftTileIndex(moveTest);
             StartCoroutine(MoveToTile(false));
         }
     }
@@ -337,6 +339,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideInJailPrompt();
         
         // TODO make UpdateGetOutOfJailFree() or something that changes the UI element
+        // TODO return the get out of jail free action card to the board class
         _getOutOfJailFreeCards--;
         LeaveJail();
     }

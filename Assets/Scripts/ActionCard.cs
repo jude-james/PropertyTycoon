@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 
 public class ActionCard
 {
@@ -27,9 +27,14 @@ public class ActionCard
         Retained = retained;
     }
 
-    public void PerformAction()
+    /// <summary>
+    /// Performs the action card description on the player
+    /// </summary>
+    /// <param name="player"> The player that took the action card </param>
+    public void PerformAction(Player player)
     {
-        throw new NotImplementedException();
+        Debug.Log("Performing action on " + player.Name);
+        player.CompleteTurn();
     }
 }
 

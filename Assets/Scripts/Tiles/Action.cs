@@ -1,3 +1,5 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 
 namespace Tiles
@@ -5,32 +7,64 @@ namespace Tiles
     public class Action : Tile
     {
         private string _cardType;
+        private TMP_Text _cardDescription;
+
+        private readonly WaitForSeconds _animationTime = new(4f);
         
         public void SetUp(string name, string cardType)
         {
             _cardType = cardType;
-            base.SetUp(name);
+            Name = name;
+            SetBoardTile();
         }
 
         protected override void SetCard()
         {
             Card = Instantiate(Resources.Load("Prefabs/Cards/" + _cardType)) as GameObject;
+            if (Card != null)
+            {
+                _cardDescription = Card.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<TMP_Text>();
+            }
         }
 
         public override void OnLanded(Player player)
         {
-            //ShowCard();
+            StartCoroutine(GetAndPerformActionCard(player));
+        }
+
+        /// <summary>
+        /// Removes the action card from the top of the queue in the board class,
+        /// shows the card and performs the action, then places the card at the bottom of the queue
+        /// </summary>
+        /// <param name="player"> The player that landed on this action tile </param>
+        private IEnumerator GetAndPerformActionCard(Player player)
+        {
+            ActionCard actionCard = _cardType switch
+            {
+                "PotLuck" => Board.Instance.PotLuckCards.Dequeue(),
+                "OppKnock" => Board.Instance.OpportunityKnocksCards.Dequeue(),
+                _ => null
+            };
+
+            if (actionCard == null) yield break;
             
-            // get queue from board class
-            // take the top of the queue
-            // Remove quotes and capitalise the description string
-            // set the card text to the description
-            // animate and show the card for x amount of seconds
-            // perform action
-            // place card at bottom of queue (unless it's a get out of jail card)
-            // so peak (show and perform action) -> dequeue -> enqueue the dequeued card
+            SetCard();
+            var description = actionCard.Description.Substring(1, actionCard.Description.Length - 2).ToUpper();
+            _cardDescription.SetText(description);
+
+            yield return _animationTime;
             
-            player.CompleteTurn();
+            Destroy(Card);
+            
+            if (!actionCard.Retained)
+            {
+                if (_cardType == "PotLuck")
+                    Board.Instance.PotLuckCards.Enqueue(actionCard);
+                else if (_cardType == "OppKnock") 
+                    Board.Instance.OpportunityKnocksCards.Enqueue(actionCard);
+            }
+            
+            actionCard.PerformAction(player);
         }
 
         protected override void OnMouseEnter()
