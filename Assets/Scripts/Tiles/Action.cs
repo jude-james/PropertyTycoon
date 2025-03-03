@@ -6,12 +6,12 @@ namespace Tiles
 {
     public class Action : Tile
     {
-        private string _cardType;
+        private CardType _cardType;
         private TMP_Text _cardDescription;
 
         private readonly WaitForSeconds _animationTime = new(4f);
         
-        public void SetUp(string name, string cardType)
+        public void SetUp(string name, CardType cardType)
         {
             _cardType = cardType;
             Name = name;
@@ -33,16 +33,16 @@ namespace Tiles
         }
 
         /// <summary>
-        /// Removes the action card from the top of the queue in the board class,
-        /// shows the card and performs the action, then places the card at the bottom of the queue
+        /// Removes the action card from the top of the queue in the board class, shows the card,
+        /// then places the card at the bottom of the queue unless the card needs to be retained by the player,
+        /// then performs the card action
         /// </summary>
-        /// <param name="player"> The player that landed on this action tile </param>
         private IEnumerator GetAndPerformActionCard(Player player)
         {
             ActionCard actionCard = _cardType switch
             {
-                "PotLuck" => Board.Instance.PotLuckCards.Dequeue(),
-                "OppKnock" => Board.Instance.OpportunityKnocksCards.Dequeue(),
+                CardType.PotLuck => Board.Instance.PotLuckCards.Dequeue(),
+                CardType.OppKnock => Board.Instance.OpportunityKnocksCards.Dequeue(),
                 _ => null
             };
 
@@ -56,11 +56,15 @@ namespace Tiles
             
             Destroy(Card);
             
-            if (!actionCard.Retained)
+            if (actionCard.ActionType == ActionType.GetOutOfJail)
             {
-                if (_cardType == "PotLuck")
+                player.AddGetOutOfJailFreeCard(actionCard);
+            }
+            else
+            {
+                if (actionCard.CardType == CardType.PotLuck)
                     Board.Instance.PotLuckCards.Enqueue(actionCard);
-                else if (_cardType == "OppKnock") 
+                else if (actionCard.CardType == CardType.OppKnock) 
                     Board.Instance.OpportunityKnocksCards.Enqueue(actionCard);
             }
             

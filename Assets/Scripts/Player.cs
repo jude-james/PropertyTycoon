@@ -30,7 +30,7 @@ public class Player : MonoBehaviour
     private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
     private const int PostBailAmount = 50;
-    private int _getOutOfJailFreeCards;
+    private List<ActionCard> _getOutOfJailFreeCards;
     
     public int DiceRoll { get; private set; }
     private int _diceRoll1;
@@ -40,8 +40,8 @@ public class Player : MonoBehaviour
     private int _doubleCount;
     private const int DoubleLimit = 3;
 
-    private int _houses; // These might not be needed
-    private int _hotels;
+    public int Houses { get; private set; } 
+    public int Hotels { get; private set; }
     
     private Tile _currentTile;
     private int _currentTileIndex;
@@ -58,6 +58,10 @@ public class Player : MonoBehaviour
     private void Start()
     {
         _animator = GetComponent<Animator>();
+
+        _getOutOfJailFreeCards = new List<ActionCard>();
+        // _titleDeeds = new List<Property>();
+        
         AssignButtonEventListeners();
         SetInfoPanel();
     }
@@ -140,12 +144,12 @@ public class Player : MonoBehaviour
 
         if (_doubleCount == DoubleLimit)
         {
-            GoToJail();
+            GoToJail(true);
         }
         else
         {
-            ShiftTileIndex(moveTest);
-            StartCoroutine(MoveToTile(false));
+            ShiftTileIndex(DiceRoll);
+            MoveToTile(Direction.Shortest);
         }
     }
     
@@ -153,26 +157,30 @@ public class Player : MonoBehaviour
     /// Sets the newTileIndex depending on the offset from the currentTileIndex, e.g. offset of -3 sets newTileIndex back 3 spaces
     /// </summary>
     /// <param name="offset"> The number of spaces +- from the currentTileIndex </param>
-    private void ShiftTileIndex(int offset)
+    public void ShiftTileIndex(int offset)
     {
         var newIndex = _currentTileIndex + offset;
         _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
     }
     
-    private void SetNewTileIndex(int newTileIndex)
+    public void SetNewTileIndex(int newTileIndex)
     {
         _newTileIndex = Maths.Mod(newTileIndex, Board.Instance.Tiles.Count);
     }
-    
+
+    public void MoveToTile(Direction direction)
+    {
+        StartCoroutine(MoveToTileCoroutine(direction));
+    }
+
     /// <summary>
     /// Animates player from currentTileIndex to newTileIndex, then lands player on tile
     /// </summary>
-    /// <param name="clockwiseOnly">
-    /// Toggles whether the player should move only clockwise around the board or can move anticlockwise.
-    /// Otherwise the direction is determined by the shorter distance
+    /// <param name="direction">
+    /// Determines the direction around the board the player moves.
+    /// If Shortest is picked the direction is determined by the shortest calculated distance
     /// </param>
-    /// <returns></returns>
-    private IEnumerator MoveToTile(bool clockwiseOnly) // TODO turn into optional clockwise or anticlockwise
+    private IEnumerator MoveToTileCoroutine(Direction direction)
     {
         StartAnimation();
 
@@ -180,16 +188,21 @@ public class Player : MonoBehaviour
         var forwardDistance = (_newTileIndex - _currentTileIndex + tileCount) % tileCount;
         var backwardDistance =  (_currentTileIndex  - _newTileIndex + tileCount) % tileCount;
 
-        var direction = clockwiseOnly || forwardDistance <= backwardDistance ? 1 : -1;
+        var step = direction switch
+        {
+            Direction.Clockwise => 1,
+            Direction.Anticlockwise => -1,
+            _ => forwardDistance <= backwardDistance ? 1 : -1
+        };
 
-        for (int i = Maths.Mod(_currentTileIndex + direction,tileCount); i != Maths.Mod(_newTileIndex + direction,tileCount); i = (i + direction + tileCount) % tileCount)
+        for (int i = Maths.Mod(_currentTileIndex + step,tileCount); i != Maths.Mod(_newTileIndex + step,tileCount); i = (i + step + tileCount) % tileCount)
         {
             yield return MoveBetweenPositions(Board.Instance.Tiles[i].transform.position);
             
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
                 yield return _pauseBetweenTileTime;
 
-            if (i == Board.Instance.goIndex)
+            if (i == Board.Instance.GetTileIndex("Go"))
                 GiveMoney(PassedGoAmount);
         }
         
@@ -265,19 +278,22 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Sends the player to the Jail position and ends their turn
     /// </summary>
-    public void GoToJail()
+    public void GoToJail(bool showPopup)
     {
-        StartCoroutine(GoToJailCoroutine());
+        StartCoroutine(GoToJailCoroutine(showPopup));
     }
 
-    private IEnumerator GoToJailCoroutine()
+    private IEnumerator GoToJailCoroutine(bool showPopup)
     {
         _rolledADouble = false;
         _doubleCount = 0;
-        
-        UIManager.Instance.ShowGoToJailPopup();
-        yield return _jailPopupTime; 
-        UIManager.Instance.HideGoToJailPopup();
+
+        if (showPopup)
+        {
+            UIManager.Instance.ShowGoToJailPopup();
+            yield return _jailPopupTime; 
+            UIManager.Instance.HideGoToJailPopup();
+        }
         
         StartAnimation();
         yield return MoveBetweenPositions(Board.Instance.JailPosition);
@@ -300,9 +316,10 @@ public class Player : MonoBehaviour
     {
         InJail = false;
         _roundsInJail = 0;
-        
-        SetNewTileIndex(Board.Instance.justVisitingIndex);
-        yield return MoveBetweenPositions(Board.Instance.Tiles[Board.Instance.justVisitingIndex].transform.position);
+
+        var justVisitingIndex = Board.Instance.GetTileIndex("Jail/Just visiting");
+        SetNewTileIndex(justVisitingIndex);
+        yield return MoveBetweenPositions(Board.Instance.Tiles[justVisitingIndex].transform.position);
         LandOnTile();
     }
 
@@ -311,7 +328,7 @@ public class Player : MonoBehaviour
     /// </summary>
     protected virtual void InJailDecision()
     {
-        UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards > 0, true);
+        UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards.Count > 0, true);
     }
 
     /// <summary>
@@ -330,7 +347,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Player uses get out of jail card and leaves jail 
+    /// Player returns get out of jail free card to board card pile and leaves jail 
     /// </summary>
     protected void OnGetOutOfJailFree()
     {
@@ -338,9 +355,15 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.HideInJailPrompt();
         
-        // TODO make UpdateGetOutOfJailFree() or something that changes the UI element
-        // TODO return the get out of jail free action card to the board class
-        _getOutOfJailFreeCards--;
+        var actionCard = _getOutOfJailFreeCards[0];
+        
+        if (actionCard.CardType == CardType.PotLuck)
+            Board.Instance.PotLuckCards.Enqueue(actionCard);
+        else if (actionCard.CardType == CardType.OppKnock) 
+            Board.Instance.OpportunityKnocksCards.Enqueue(actionCard);
+        
+        RemoveGetOutOfJailFreeCard(actionCard);
+        
         LeaveJail();
     }
     
@@ -404,7 +427,7 @@ public class Player : MonoBehaviour
     public void GiveMoney(int amount)
     {
         _money += amount;
-        StartCoroutine(UIManager.Instance.AnimateMoney(_moneyText, _money));
+        UIManager.Instance.AnimateMoney(_moneyText, _money);
     }
 
     /// <summary>
@@ -423,8 +446,20 @@ public class Player : MonoBehaviour
         else
         {
             _money = newMoney;
-            StartCoroutine(UIManager.Instance.AnimateMoney(_moneyText, _money));
+            UIManager.Instance.AnimateMoney(_moneyText, _money);
         }
+    }
+
+    public void AddGetOutOfJailFreeCard(ActionCard actionCard)
+    {
+        _getOutOfJailFreeCards.Add(actionCard);
+        UpdateGetOutOfJailFreeCardNumber();
+    }
+
+    private void RemoveGetOutOfJailFreeCard(ActionCard actionCard)
+    {
+        _getOutOfJailFreeCards.Remove(actionCard);
+        UpdateGetOutOfJailFreeCardNumber();
     }
     
     private void AssignButtonEventListeners()
@@ -457,14 +492,12 @@ public class Player : MonoBehaviour
         _moneyText.SetText("£"+_money);
         
         _getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
-        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
+        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.Count.ToString());
     }
 
     private void UpdateGetOutOfJailFreeCardNumber()
     {
-        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.ToString());
-        
-        // TODO loop through title deeds and update titledeedmini UI list
+        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.Count.ToString());
     }
 
     /// <summary>

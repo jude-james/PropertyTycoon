@@ -66,10 +66,9 @@ public class UIManager : Singleton<UIManager>
     private Image _payRentPanelOwnedByImage;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
+    private const float MoneyChangeDuration = 1.5f;
 
     private int _nextInfoPanel;
-
-    [SerializeField] private float moneyChangeDuration;
     
     private void Awake()
     {
@@ -187,21 +186,26 @@ public class UIManager : Singleton<UIManager>
         dice2.sprite = landedDiceFaces[diceRoll2-1];
     }
 
+    public void AnimateMoney(TMP_Text money, int newValue)
+    {
+        StartCoroutine(AnimateMoneyCoroutine(money, newValue));
+    }
+    
     /// <summary>
     /// Interpolates the money text value to the newValue, for the duration
     /// </summary>
     /// <param name="money"> The TMP Text component </param>
     /// <param name="newValue"> The integer value to set the TMP Text component to </param>
     /// <returns></returns>
-    public IEnumerator AnimateMoney(TMP_Text money, int newValue)
+    private IEnumerator AnimateMoneyCoroutine(TMP_Text money, int newValue)
     {
         var currentValue = int.Parse(money.text.Substring(1, money.text.Length - 1));
 
         float elapsedTime = 0;
-        while (elapsedTime < moneyChangeDuration)
+        while (elapsedTime < MoneyChangeDuration)
         {
             elapsedTime += Time.deltaTime;
-            money.SetText("£" + Math.Round(Mathf.Lerp(currentValue, newValue, elapsedTime / moneyChangeDuration)));
+            money.SetText("£" + Math.Round(Mathf.Lerp(currentValue, newValue, elapsedTime / MoneyChangeDuration)));
             yield return null;
         }
     }

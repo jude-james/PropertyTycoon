@@ -20556,9 +20556,9 @@ MonoBehaviour:
   tokens:
   - {fileID: 21300000, guid: 41265eda507fbe7438a5fb3a5a197f17, type: 3}
   - {fileID: 21300000, guid: 5ce00fef09c8bbd4e823caea9e8b246b, type: 3}
+  - {fileID: 21300000, guid: 5f3bab2fba1232a4c9130c396e267c9b, type: 3}
+  - {fileID: 21300000, guid: 7645467d282324144be43ab4f767a283, type: 3}
   waypointPrefab: {fileID: 6080715695410561673, guid: 5202d9d9c99cb469995646340c515750, type: 3}
-  justVisitingIndex: 10
-  goIndex: 0
 --- !u!4 &917348780
 Transform:
   m_ObjectHideFlags: 0

@@ -125,8 +125,9 @@ public class DataReader
                 }
                 case "Action":
                 {
-                    var cardType = boardDataMatrix[i+startCol][subtypeRow];
-                
+                    var cardTypeStr = boardDataMatrix[i+startCol][subtypeRow];
+                    Enum.TryParse(cardTypeStr, out CardType cardType);
+
                     var action = boardTiles.GetChild(i).gameObject.AddComponent<Action>();
                     action.SetUp(name, cardType);
                     Tiles.Add(action);
@@ -165,14 +166,14 @@ public class DataReader
     {
         var startColumn = 2;
         var endColumn = 18;
-        PotLuckCards = ReadActionCards(startColumn, endColumn);
+        PotLuckCards = ReadActionCards(startColumn, endColumn, CardType.PotLuck);
         
         startColumn = 20;
         endColumn = 35;
-        OpportunityKnocksCards = ReadActionCards(startColumn, endColumn);
+        OpportunityKnocksCards = ReadActionCards(startColumn, endColumn, CardType.OppKnock);
     }
 
-    private Queue<ActionCard> ReadActionCards(int startColumn, int endColumn)
+    private Queue<ActionCard> ReadActionCards(int startColumn, int endColumn, CardType cardType)
     {
         // Hard coded values by looking at Exel spreadsheet
         const int descriptionRow = 0;
@@ -202,34 +203,33 @@ public class DataReader
                 case ActionType.GiveMoney or ActionType.TakeMoney or ActionType.AddToFreeParking or ActionType.CollectMoney:
                 {
                     var amount = int.Parse(cardDataMatrix[i][amountRow]); 
-                    actionCard = new ActionCard(description, actionType, amount);
+                    actionCard = new ActionCard(description, actionType, cardType, amount);
                     break;
                 }
                 case ActionType.TakeBuildingMoney:
                 {
                     var houseRepairAmount = int.Parse(cardDataMatrix[i][houseRepairAmountRow]);
                     var hotelRepairAmount = int.Parse(cardDataMatrix[i][hotelRepairAmountRow]);
-                    actionCard = new ActionCard(description, actionType, houseRepairAmount: houseRepairAmount, hotelRepairAmount: hotelRepairAmount);
+                    actionCard = new ActionCard(description, actionType, cardType, houseRepairAmount: houseRepairAmount, hotelRepairAmount: hotelRepairAmount);
                     break;
                 }
                 case ActionType.MoveTo:
                 {
                     var tileName = cardDataMatrix[i][tileNameRow];
-                    var direction = cardDataMatrix[i][directionRow]; // make direction enum?
-                    actionCard = new ActionCard(description, actionType, tileName:tileName, direction: direction);
+                    var directionStr = cardDataMatrix[i][directionRow]; 
+                    Enum.TryParse(directionStr, out Direction direction);
+
+                    actionCard = new ActionCard(description, actionType, cardType, tileName:tileName, direction: direction);
                     break;
                 }
                 case ActionType.MoveBy:
                 {
                     var moveAmount = int.Parse(cardDataMatrix[i][moveAmountRow]);
-                    actionCard = new ActionCard(description, actionType, moveAmount: moveAmount);
+                    actionCard = new ActionCard(description, actionType, cardType, moveAmount: moveAmount);
                     break;
                 }
-                case ActionType.GetOutOfJail:
-                    actionCard = new ActionCard(description, actionType, retained: true);
-                    break;
                 default:
-                    actionCard = new ActionCard(description, actionType);
+                    actionCard = new ActionCard(description, actionType, cardType);
                     break;
             }
             

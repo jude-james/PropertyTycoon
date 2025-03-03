@@ -27,21 +27,21 @@ public class Board : Singleton<Board>
     public Queue<ActionCard> PotLuckCards { get; private set; }
     public Queue<ActionCard> OpportunityKnocksCards { get; private set; }
     
+    private int _freeParkingSum;
+
     public int FreeParkingSum
     {
         get => _freeParkingSum;
         set
         {
             _freeParkingSum = value;
-            StartCoroutine(UIManager.Instance.AnimateMoney(_freeParkingSumText, _freeParkingSum));
+            UIManager.Instance.AnimateMoney(_freeParkingSumText, _freeParkingSum);
         }
     }
-    private int _freeParkingSum;
-
-    private Player[] _players;
     
     private Bank _bank;
     
+    public Player[] Players { get; private set; }
     private Player _currentPlayer;
     private int _currentPlayerIndex;
 
@@ -50,12 +50,6 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform waypointPrefab;
     [SerializeField] private float[,] positions = new float[2,40];
     
-    // This is temporary and not very robust, will change when action cards are implemented
-    // Key tiles
-    // TODO just make some sort of findIndex(name), probably already exists
-    public int justVisitingIndex = 10;
-    public int goIndex = 0;
-
     private void Start()
     {
         var dataReader = new DataReader();
@@ -76,22 +70,31 @@ public class Board : Singleton<Board>
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         
         // Manually assigning players for testing purposes, will get players from main menu later
-        _players = new Player[2];
+        // players will also become a list so they can be added and removed once a player declares bankruptcy 
+        Players = new Player[4];
 
-        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
-        _players[0].SetSprite(tokens[0]);
-        _players[0].Name = tokens[0].name;
+        Players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
+        Players[0].SetSprite(tokens[0]);
+        Players[0].Name = tokens[0].name;
         
-        _players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
-        _players[1].SetSprite(tokens[1]);
-        _players[1].Name = tokens[1].name;
+        Players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        Players[1].SetSprite(tokens[1]);
+        Players[1].Name = tokens[1].name;
         
-        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
+        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
+        Players[2].SetSprite(tokens[2]);
+        Players[2].Name = tokens[2].name;
+        
+        Players[3] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
+        Players[3].SetSprite(tokens[3]);
+        Players[3].Name = tokens[3].name;
+        
+        _currentPlayer = Players[_currentPlayerIndex % Players.Length];
         _currentPlayer.StartTurn();
     }
 
     /// <summary>
-    /// Ends the current player's turn and starts the next player's turn.
+    /// Ends the current players turn and starts the next players turn.
     /// </summary>
     public void EndTurn()
     {
@@ -102,8 +105,13 @@ public class Board : Singleton<Board>
     {
         yield return _timeBetweenTurns;
         _currentPlayerIndex++;
-        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
+        _currentPlayer = Players[_currentPlayerIndex % Players.Length];
         _currentPlayer.StartTurn();
+    }
+    
+    public int GetTileIndex(string name)
+    {
+        return Tiles.FindIndex(tile => tile.Name == name);
     }
     
     /*Creates space position on the board using absolute values, 
