@@ -81,7 +81,7 @@ public class Board : Singleton<Board>
         Players[1].SetSprite(tokens[1]);
         Players[1].Name = tokens[1].name;
         
-        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
+        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
         Players[2].SetSprite(tokens[2]);
         Players[2].Name = tokens[2].name;
         
