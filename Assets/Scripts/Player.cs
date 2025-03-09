@@ -163,15 +163,21 @@ public class Player : MonoBehaviour
         _newTileIndex = Maths.Mod(newIndex, Board.Instance.Tiles.Count);
     }
     
+    /// <summary>
+    /// Sets the new tile index for the player, ensuring it wraps around the board if necessary.
+    /// </summary>
+    /// <param name="newTileIndex">The new tile index to set.</param>
     public void SetNewTileIndex(int newTileIndex)
     {
         _newTileIndex = Maths.Mod(newTileIndex, Board.Instance.Tiles.Count);
     }
-
+    
+    /// @cond
     public void MoveToTile(Direction direction)
     {
         StartCoroutine(MoveToTileCoroutine(direction));
     }
+    /// @endcond
 
     /// <summary>
     /// Animates player from currentTileIndex to newTileIndex, then lands player on tile
@@ -367,6 +373,9 @@ public class Player : MonoBehaviour
         LeaveJail();
     }
     
+    /// <summary>
+    /// Handles the player's decision to remain in jail, hiding the jail prompt and ending the turn.
+    /// </summary>
     protected void OnRemainInJail()
     {
         if (_activePlayer != this) return;
@@ -450,6 +459,10 @@ public class Player : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds a Get Out Of Jail Free card to the player's collection.
+    /// </summary>
+    /// <param name="actionCard">The Get Out Of Jail Free card to add.</param>
     public void AddGetOutOfJailFreeCard(ActionCard actionCard)
     {
         _getOutOfJailFreeCards.Add(actionCard);

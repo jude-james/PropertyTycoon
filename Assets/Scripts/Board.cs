@@ -109,6 +109,11 @@ public class Board : Singleton<Board>
         _currentPlayer.StartTurn();
     }
     
+    /// <summary>
+    /// Finds the index of a tile by its name.
+    /// </summary>
+    /// <param name="name">The name of the tile to find.</param>
+    /// <returns>The index of the tile with the specified name.</returns>
     public int GetTileIndex(string name)
     {
         return Tiles.FindIndex(tile => tile.Name == name);
