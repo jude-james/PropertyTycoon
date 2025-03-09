@@ -1,3 +1,6 @@
+/// <summary>
+/// Represents a player in the game menu, including their name, token, and bot status.
+/// </summary>
 public class MenuPlayer
 {
     /// <summary>

@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
+// hide Menu from doc generation b/c all methods are private
+/// @cond
 public class Menu : MonoBehaviour
 {
     [SerializeField] private Sprite humanImage;
@@ -155,3 +157,4 @@ public class Menu : MonoBehaviour
         }
     }
 }
+/// @endcond
