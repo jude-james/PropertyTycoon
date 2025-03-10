@@ -59,8 +59,40 @@ public class Board : Singleton<Board>
         
         dataReader.ReadCardData();
         var rng = new System.Random();
-        PotLuckCards = new Queue<ActionCard>(dataReader.PotLuckCards.ToList().OrderBy(_ => rng.Next()));
-        OpportunityKnocksCards = new Queue<ActionCard>(dataReader.OpportunityKnocksCards.ToList().OrderBy(_ => rng.Next()));
+        // foreach (var card in dataReader.PotLuckCards)
+        // {
+        //     Debug.Log(card.getName());
+        // }
+        var getOutOfJailCard = dataReader.PotLuckCards.FirstOrDefault(card => card.getName().Trim().ToLower() == "\"get out of jail free\"");
+        PotLuckCards = new Queue<ActionCard>();
+        if (getOutOfJailCard != null)
+        {
+            Debug.Log("FOUND GETOUTOFJAIL!!");
+            PotLuckCards.Enqueue(getOutOfJailCard);
+        } else {
+            Debug.Log("ERROR: COULD NOT FIND!!");
+        }
+        // PotLuckCards = new Queue<ActionCard>(dataReader.PotLuckCards.Where(card => card.getName() == "Get out of jail free").ToList());
+        // foreach (var card in dataReader.PotLuckCards)
+        // {
+        //     Debug.Log(card.getName());
+        // }
+        var getOutOfJailCard2 = dataReader.OpportunityKnocksCards.FirstOrDefault(card => card.getName().Trim().ToLower() == "\"get out of jail free\"");
+        OpportunityKnocksCards = new Queue<ActionCard>();
+        if (getOutOfJailCard2 != null)
+        {
+            Debug.Log("FOUND GETOUTOFJAIL2!!");
+            OpportunityKnocksCards.Enqueue(getOutOfJailCard2);
+        } else {
+            Debug.Log("ERROR: COULD NOT FIND PT2!!");
+        }
+        // OpportunityKnocksCards = new Queue<ActionCard>(dataReader.OpportunityKnocksCards.ToList().OrderBy(_ => rng.Next()));
+        // foreach (var card in dataReader.OpportunityKnocksCards)
+        // {
+        //     Debug.Log(card.getName());
+        // }
+        // OpportunityKnocksCards = new Queue<ActionCard>();
+        // OpportunityKnocksCards.Enqueue(dataReader.OpportunityKnocksCards.FirstOrDefault(card => card.getName() == "\"get out of jail free\""));
         
         // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
         var titleDeeds = dataReader.Properties;

@@ -24,6 +24,10 @@ public class ActionCard
         _moveAmount = moveAmount;
     }
 
+    public string getName() {
+        return Description;
+    }
+
     /// <summary>
     /// Performs the description of the action card on the player
     /// </summary>

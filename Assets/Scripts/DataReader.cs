@@ -194,6 +194,7 @@ public class DataReader
             ActionCard actionCard;
             
             var description = cardDataMatrix[i][descriptionRow];
+            // Debug.Log($"Reading card: {description}");
             var actionTypeStr = cardDataMatrix[i][actionTypeRow];
             
             Enum.TryParse(actionTypeStr, out ActionType actionType);
