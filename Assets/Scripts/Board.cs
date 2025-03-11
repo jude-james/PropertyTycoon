@@ -101,6 +101,10 @@ public class Board : Singleton<Board>
         StartCoroutine(StartNextTurn());
     }
     
+    /// <summary>
+    /// Loops through the list of players and starts their turn, wrapping back to the first player if necessary
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator StartNextTurn()
     {
         yield return _timeBetweenTurns;

@@ -186,10 +186,12 @@ public class UIManager : Singleton<UIManager>
         dice2.sprite = landedDiceFaces[diceRoll2-1];
     }
 
+    /// @cond
     public void AnimateMoney(TMP_Text money, int newValue)
     {
         StartCoroutine(AnimateMoneyCoroutine(money, newValue));
     }
+    /// @endcond
     
     /// <summary>
     /// Interpolates the money text value to the newValue, for the duration

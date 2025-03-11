@@ -11,8 +11,6 @@ using Random = UnityEngine.Random;
 /// </summary>
 public class Player : MonoBehaviour
 {
-    public int moveTest;
-    
     private static Player _activePlayer;
 
     public Sprite Sprite { get; private set; }
@@ -115,16 +113,18 @@ public class Player : MonoBehaviour
         UIManager.Instance.ShowRollDicePrompt();
     }
     
-    /// <summary>
-    /// Handles the rolling of dice and the action to take depending on the dice roll
-    /// </summary>
+    /// @cond
     protected void OnRollDice()
     {
         if (this != _activePlayer) return;
 
         StartCoroutine(OnRollDiceCoroutine());
     }
+    /// @endcond
 
+    /// <summary>
+    /// Handles the rolling of dice and the action to take depending on the dice roll
+    /// </summary>
     private IEnumerator OnRollDiceCoroutine()
     {
         UIManager.Instance.HideRollDicePrompt();
@@ -281,14 +281,16 @@ public class Player : MonoBehaviour
         Board.Instance.EndTurn();
     }
 
-    /// <summary>
-    /// Sends the player to the Jail position and ends their turn
-    /// </summary>
+    /// @cond
     public void GoToJail(bool showPopup)
     {
         StartCoroutine(GoToJailCoroutine(showPopup));
     }
+    /// @endcond
 
+    /// <summary>
+    /// Sends the player to the Jail position and ends their turn
+    /// </summary>
     private IEnumerator GoToJailCoroutine(bool showPopup)
     {
         _rolledADouble = false;
@@ -310,14 +312,16 @@ public class Player : MonoBehaviour
         EndTurnDecision();
     }
 
-    /// <summary>
-    /// Sends player to the just visiting tile and lands on that tile
-    /// </summary>
+    /// @cond
     private void LeaveJail()
     {
         StartCoroutine(LeaveJailCoroutine());
     }
+    /// @endcond
 
+    /// <summary>
+    /// Sends player to the just visiting tile and lands on that tile
+    /// </summary>
     private IEnumerator LeaveJailCoroutine()
     {
         InJail = false;
