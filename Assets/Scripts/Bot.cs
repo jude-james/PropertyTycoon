@@ -17,7 +17,7 @@ public class Bot : Player
 
     protected override void EndTurnDecision()
     {
-        // Bot can choose to 'click' end turn, or it can choose the other options... auction, build, sell, trade...
+        // Bot can choose to 'click' end turn, or, at this point, it can choose the other options... auction, build, sell, trade...
         OnEndTurn();
     }
 
