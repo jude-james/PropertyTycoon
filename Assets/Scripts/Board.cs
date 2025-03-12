@@ -14,7 +14,6 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform jailPosition;
     [SerializeField] private GameObject playerPrefab;
     
-    // TODO update bank UI
     private GameObject _bankInfoPanel;
     private TMP_Text _freeParkingSumText;
     
@@ -23,7 +22,9 @@ public class Board : Singleton<Board>
     public Vector2 JailPosition => jailPosition.position;
     
     public List<Tile> Tiles { get; private set; }
-
+    
+    public Property[] TitleDeeds { get; private set; }
+    
     public Queue<ActionCard> PotLuckCards { get; private set; }
     public Queue<ActionCard> OpportunityKnocksCards { get; private set; }
     
@@ -38,8 +39,6 @@ public class Board : Singleton<Board>
             UIManager.Instance.AnimateMoney(_freeParkingSumText, _freeParkingSum);
         }
     }
-    
-    private Bank _bank;
     
     public Player[] Players { get; private set; }
     private Player _currentPlayer;
@@ -57,14 +56,16 @@ public class Board : Singleton<Board>
         dataReader.ReadBoardData(boardTiles);
         Tiles = dataReader.Tiles;
         
+        TitleDeeds = new Property[dataReader.Properties.Count];
+        for (var i = 0; i < dataReader.Properties.Count; i++)
+        {
+            TitleDeeds[i] = dataReader.Properties[i];
+        }
+        
         dataReader.ReadCardData();
         var rng = new System.Random();
         PotLuckCards = new Queue<ActionCard>(dataReader.PotLuckCards.ToList().OrderBy(_ => rng.Next()));
         OpportunityKnocksCards = new Queue<ActionCard>(dataReader.OpportunityKnocksCards.ToList().OrderBy(_ => rng.Next()));
-        
-        // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
-        var titleDeeds = dataReader.Properties;
-        _bank = new Bank(32, 12, titleDeeds);
         
         _bankInfoPanel = UIManager.Instance.BankInfoPanel;
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
@@ -121,6 +122,18 @@ public class Board : Singleton<Board>
     public int GetTileIndex(string name)
     {
         return Tiles.FindIndex(tile => tile.Name == name);
+    }
+
+    public void GiveTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = property;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _bankInfoPanel);
+    }
+    
+    public void TakeTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = null;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _bankInfoPanel);
     }
     
     /*Creates space position on the board using absolute values, 

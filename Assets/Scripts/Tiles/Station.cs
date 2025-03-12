@@ -10,14 +10,14 @@ namespace Tiles
         private int _rent3;
         private int _rent4;
         
-        public void SetUp(string name, int cost, int rent1, int rent2, int rent3, int rent4)
+        public void SetUp(string name, int cost, int propertyNumber, int rent1, int rent2, int rent3, int rent4)
         {
             _rent1 = rent1;
             _rent2 = rent2;
             _rent3 = rent3;
             _rent4 = rent4;
             CurrentRent = _rent1;
-            base.SetUp(name, cost);
+            base.SetUp(name, cost, propertyNumber);
         }
 
         protected override void SetCard()

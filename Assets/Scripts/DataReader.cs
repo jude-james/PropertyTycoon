@@ -49,7 +49,8 @@ public class DataReader
         
         Tiles = new List<Tile>();
         Properties = new List<Property>();
-        
+        var propertyNumber = 0;
+
         var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
         
         for (int i = 0; i < boardTiles.childCount; i++)
@@ -82,7 +83,7 @@ public class DataReader
                             var hotelCost = int.Parse(boardDataMatrix[i+startCol][hotelCostRow]);
                     
                             var street = boardTiles.GetChild(i).gameObject.AddComponent<Street>();
-                            street.SetUp(name, cost, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost);
+                            street.SetUp(name, cost, propertyNumber, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost);
                             Tiles.Add(street);
                             break;
                         }
@@ -94,7 +95,7 @@ public class DataReader
                             var rent4 = int.Parse(boardDataMatrix[i+startCol][stationRent4Row]);
                     
                             var station = boardTiles.GetChild(i).gameObject.AddComponent<Station>();
-                            station.SetUp(name, cost, rent1, rent2, rent3, rent4);
+                            station.SetUp(name, cost, propertyNumber, rent1, rent2, rent3, rent4);
                             Tiles.Add(station);
                             break;
                         }
@@ -105,13 +106,14 @@ public class DataReader
                             var utilType = boardDataMatrix[i+startCol][specificRow];
 
                             var utility = boardTiles.GetChild(i).gameObject.AddComponent<Utility>();
-                            utility.SetUp(name, cost, rent1, rent2, utilType);
+                            utility.SetUp(name, cost, propertyNumber, rent1, rent2, utilType);
                             Tiles.Add(utility);
                             break;
                         }
                     }
                 
                     Properties.Add((Property) Tiles[^1]);
+                    propertyNumber++;
                     break;
                 }
                 case "Tax":

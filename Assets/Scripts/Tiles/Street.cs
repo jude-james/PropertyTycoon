@@ -18,7 +18,7 @@ namespace Tiles
         private int _currentHouses;
         private int _currentHotels;
         
-        public void SetUp(string name, int cost, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
+        public void SetUp(string name, int cost, int propertyNumber, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
         {
             _set = set;
             _initialRent = initialRent;
@@ -27,7 +27,7 @@ namespace Tiles
             _houseCost = houseCost;
             _hotelCost = hotelCost;
             CurrentRent = _initialRent;
-            base.SetUp(name, cost);
+            base.SetUp(name, cost, propertyNumber);
         }
 
         protected override void SetCard()

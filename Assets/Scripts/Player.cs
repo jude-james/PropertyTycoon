@@ -22,8 +22,8 @@ public class Player : MonoBehaviour
 
     public string Name { get; set; }
     private int _money = 1500;
-    private List<Property> _titleDeeds;
-    
+
+    private Property[] TitleDeeds { get; set; }
     public bool InJail { get; private set; }
     private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
         _animator = GetComponent<Animator>();
 
         _getOutOfJailFreeCards = new List<ActionCard>();
-        // _titleDeeds = new List<Property>();
+        TitleDeeds = new Property[Board.Instance.TitleDeeds.Length];
         
         AssignButtonEventListeners();
         SetInfoPanel();
@@ -399,7 +399,7 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Buys the property that the player is currently on
+    /// Buys the property that the player is currently on and gives the player the title deed card
     /// </summary>
     protected void OnBuy()
     {
@@ -410,8 +410,12 @@ public class Player : MonoBehaviour
         var property = (Property)_currentTile;
         
         TakeMoney(property.Cost);
+
+        TitleDeeds[property.PropertyNumber] = property;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
+        Board.Instance.TakeTitleDeed(property);
+        
         property.OwnedBy = this;
-        // TODO update property list for player and bank and update mini title deed UI
         
         CompleteTurn();
     }
@@ -508,8 +512,8 @@ public class Player : MonoBehaviour
         _moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         _moneyText.SetText("£"+_money);
         
-        _getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(3).GetComponent<TMP_Text>();
-        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.Count.ToString());
+        _getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(4).GetComponent<TMP_Text>();
+        UpdateGetOutOfJailFreeCardNumber();
     }
 
     private void UpdateGetOutOfJailFreeCardNumber()

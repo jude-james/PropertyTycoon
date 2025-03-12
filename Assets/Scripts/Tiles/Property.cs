@@ -10,18 +10,20 @@ namespace Tiles
     //[System.Serializable]
     public class Property : Tile
     {
-        public Player OwnedBy { protected get; set; } // initially owned by the bank, null can be the bank for now
+        public Player OwnedBy { get; set; } // initially owned by the bank, null can be the bank for now
         public int Cost { get; private set; }
+        public int PropertyNumber { get; private set; }
+        protected int CurrentRent;
+        
         protected bool Mortgaged;
-        protected int CurrentRent; // Although each property manages rent differently, they all still have a current rent value
-
         private GameObject _mortgagedCard; // Each property can be turned over to see the mortgage into
         
         private readonly WaitForSeconds _payRentPopupTime = new(3);
 
-        protected void SetUp(string name, int cost)
+        protected void SetUp(string name, int cost, int propertyNumber)
         {
             Cost = cost;
+            PropertyNumber = propertyNumber;
             base.SetUp(name);
         }
         

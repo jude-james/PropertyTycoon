@@ -211,4 +211,26 @@ public class UIManager : Singleton<UIManager>
             yield return null;
         }
     }
+
+    /// <summary>
+    /// Loops through the list of title deeds and changes the opacity of the UI
+    /// depending on if the player/bank owns the title deed
+    /// </summary>
+    /// <param name="titleDeeds"> The title deeds the player/bank owns </param>
+    /// <param name="infoPanel"> The player/bank info panel to update </param>
+    public void UpdateTitleDeedUI(Property[] titleDeeds, GameObject infoPanel)
+    {
+        const float unownedAlpha = 0.4f;
+        const float ownedAlpha = 1f;
+
+        var miniTitleDeeds = infoPanel.transform.GetChild(3).gameObject;
+
+        for (var i = 0; i < titleDeeds.Length; i++)
+        {
+            var image = miniTitleDeeds.transform.GetChild(i).GetComponent<Image>();
+
+            var alpha = titleDeeds[i] == null ? unownedAlpha : ownedAlpha;
+            image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
+        }
+    }
 }
