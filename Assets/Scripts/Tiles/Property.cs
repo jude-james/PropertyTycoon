@@ -39,6 +39,7 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
+            // TODO check for at least 2 players passing go
             if (OwnedBy == null)
             {
                 // if property is owned by bank, player can buy for the Cost, or auction

@@ -11,7 +11,7 @@ public class Bot : Player
     
     protected override void RollDiceDecision()
     {
-        // Bot can choose to 'click' roll dice
+        // Bot can choose to 'click' roll dice, that is the only thing it can do here
         OnRollDice();
     }
 
@@ -24,7 +24,8 @@ public class Bot : Player
     protected override void InJailDecision()
     {
         UIManager.Instance.ShowInJailPrompt(false, false, false);
-
+        UIManager.Instance.ShowBotDecisionDialog();
+        
         StartCoroutine(InJailDecisionCoroutine());
     }
 
@@ -32,6 +33,8 @@ public class Bot : Player
     {
         yield return _decisionMakingTime;
         
+        UIManager.Instance.HideBotDecisionDialog();
+
         // Bot can either post bail, use card or stay in jail
         // Bot should check if it has enough money or has enough getOutOfJailFreeCards first
         
@@ -41,6 +44,7 @@ public class Bot : Player
     public override void ForSaleDecision(Property property)
     {
         UIManager.Instance.ShowForSalePrompt(false, false, property);
+        UIManager.Instance.ShowBotDecisionDialog();
 
         StartCoroutine(ForSaleDecisionCoroutine(property));
     }
@@ -49,9 +53,36 @@ public class Bot : Player
     {
         yield return _decisionMakingTime;
         
+        UIManager.Instance.HideBotDecisionDialog();
+        
         // bot can choose to buy or auction
         // Bot should check it has enough money first
         
         OnBuy();
+    }
+
+    public override void BidDecision()
+    {
+        _currentBidder = this;
+        
+        UIManager.Instance.UpdateAuctionPrompt(false, false, Name, Sprite);
+        UIManager.Instance.ShowBotDecisionDialog();
+
+        StartCoroutine(BidDecisionCoroutine());
+    }
+
+    private IEnumerator BidDecisionCoroutine()
+    {
+        yield return _decisionMakingTime;
+        
+        UIManager.Instance.HideBotDecisionDialog();
+        
+        // TODO this function should have access to the property, the current bid price, and the players in the bid,
+        // so bot can make a decision
+        // bot can chose to bid, big bid, or fold
+        // bot should check it can afford new bid price 
+        
+        OnFold();
+        //OnBid();
     }
 }

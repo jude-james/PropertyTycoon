@@ -12,6 +12,7 @@ using Random = UnityEngine.Random;
 public class Player : MonoBehaviour
 {
     private static Player _activePlayer;
+    protected static Player _currentBidder;
 
     public Sprite Sprite { get; private set; }
     private Animator _animator;
@@ -24,6 +25,7 @@ public class Player : MonoBehaviour
     private int _money = 1500;
 
     private Property[] TitleDeeds { get; set; }
+    
     public bool InJail { get; private set; }
     private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
@@ -46,6 +48,7 @@ public class Player : MonoBehaviour
     private int _newTileIndex;
     
     private const int PassedGoAmount = 200;
+    public bool PassedGo { get; private set; }
     
     private const int MoveSpeed = 10;
     
@@ -209,7 +212,10 @@ public class Player : MonoBehaviour
                 yield return _pauseBetweenTileTime;
 
             if (i == Board.Instance.GetTileIndex("Go"))
+            {
+                PassedGo = true;
                 GiveMoney(PassedGoAmount);
+            }
         }
         
         StopAnimation();
@@ -395,6 +401,7 @@ public class Player : MonoBehaviour
     /// <param name="property"></param>
     public virtual void ForSaleDecision(Property property)
     {
+        // TODO auctionButtonEnabled, board.CanAuction or something
         UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, true, property);
     }
 
@@ -413,6 +420,7 @@ public class Player : MonoBehaviour
 
         TitleDeeds[property.PropertyNumber] = property;
         UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
+        
         Board.Instance.TakeTitleDeed(property);
         
         property.OwnedBy = this;
@@ -429,14 +437,53 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.HideForSalePrompt();
         
-        Debug.Log("Auctioning property...");
-        
-        // TODO auction
-        // signal to the board class, board class will loop through players again and give them choice
-        
-        CompleteTurn();
+        var property = (Property) _currentTile;
+        UIManager.Instance.ShowAuctionPrompt(property);
+        Board.Instance.StartAuction(property);
     }
 
+    /// <summary>
+    /// Sets this player as the current bidder and gives player button choices
+    /// </summary>
+    public virtual void BidDecision()
+    {
+        _currentBidder = this;
+        
+        var canBid = _money >= Board.Instance.AuctionPrice + Board.Instance.BidAmount;
+        UIManager.Instance.UpdateAuctionPrompt(canBid, true, Name, Sprite);
+    }
+
+    protected void OnBid()
+    {
+        if (_currentBidder != this) return;
+        
+        Board.Instance.EndBid(false, Board.Instance.BidAmount);
+    }
+
+    protected void OnFold()
+    {
+        if (_currentBidder != this) return;
+        
+        Board.Instance.EndBid(true);
+    }
+
+    /// <summary>
+    /// Gives the player the property that was auctioned for the auction price and gives them the title deed card
+    /// </summary>
+    /// <param name="property">The auctioned property</param>
+    /// <param name="price">The auction price</param>
+    public void WinAuction(Property property, int price)
+    {
+        TakeMoney(price);
+        
+        TitleDeeds[property.PropertyNumber] = property;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
+        
+        Board.Instance.TakeTitleDeed(property);
+
+        property.OwnedBy = this;
+    }
+    
     /// <summary>
     /// Gives the player a specified amount of money.
     /// </summary>
@@ -490,6 +537,9 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.buyButton.onClick.AddListener(OnBuy);
         UIManager.Instance.auctionButton.onClick.AddListener(OnAuction);
+        
+        UIManager.Instance.bidButton.onClick.AddListener(OnBid);
+        UIManager.Instance.foldButton.onClick.AddListener(OnFold);
         
         UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
         UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);

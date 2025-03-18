@@ -27,11 +27,13 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject rollDicePanel;
     [SerializeField] private GameObject endTurnPanel;
     [SerializeField] private GameObject forSalePanel;
+    [SerializeField] private GameObject auctionPanel;
     [SerializeField] private GameObject inJailPanel;
     
     [Header("Game Popups")]
     [SerializeField] private GameObject goToJailPanel;
     [SerializeField] private GameObject payRentPanel;
+    [SerializeField] private GameObject botDecisionDialogPanel;
     
     [Header("Buttons")]
     public Button rollDiceButton;
@@ -39,6 +41,9 @@ public class UIManager : Singleton<UIManager>
     
     public Button buyButton;
     public Button auctionButton;
+
+    public Button bidButton;
+    public Button foldButton;
     
     public Button postBailButton;
     public Button getOutOfJailFreeButton;
@@ -54,6 +59,13 @@ public class UIManager : Singleton<UIManager>
     private GameObject _forSalePanelCard;
     private Transform _forSalePanelCardPlaceholder;
 
+    private TMP_Text _auctionPanelCostText;
+    private TMP_Text _auctionPanelNameText;
+    private GameObject _auctionPanelCard;
+    private Transform _auctionPanelCardPlaceholder;
+    private Image _auctionPanelImage;
+    private TMP_Text _auctionPanelPriceText;
+    
     private TMP_Text _goToJailPanelNameText;
 
     private TMP_Text _inJailPanelNameText;
@@ -80,6 +92,12 @@ public class UIManager : Singleton<UIManager>
 
         _forSalePanelCostText = forSalePanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _forSalePanelCardPlaceholder = forSalePanel.transform.GetChild(4).transform;
+        
+        _auctionPanelCostText = auctionPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _auctionPanelNameText = auctionPanel.transform.GetChild(3).GetComponent<TMP_Text>();
+        _auctionPanelCardPlaceholder = auctionPanel.transform.GetChild(2).transform;
+        _auctionPanelImage = auctionPanel.transform.GetChild(4).GetComponent<Image>();
+        _auctionPanelPriceText = auctionPanel.transform.GetChild(6).GetComponent<TMP_Text>();
         
         _goToJailPanelNameText = goToJailPanel.transform.GetChild(0).GetComponent<TMP_Text>();
 
@@ -115,6 +133,44 @@ public class UIManager : Singleton<UIManager>
         forSalePanel.SetActive(false);
     }
 
+    public void ShowAuctionPrompt(Property property)
+    {
+        _auctionPanelCostText.SetText("£" + property.Cost);
+        _auctionPanelCard = Instantiate(property.Card.transform.GetChild(0).gameObject, _auctionPanelCardPlaceholder);
+        auctionPanel.SetActive(true);
+    }
+    
+    public void HideAuctionPrompt()
+    {
+        Destroy(_auctionPanelCard);
+        auctionPanel.SetActive(false);
+    }
+    
+    public void UpdateAuctionPrompt(bool bidButtonEnabled, bool foldButtonEnabled, string bidderName, Sprite bidderSprite)
+    {
+        bidButton.interactable = bidButtonEnabled;
+        foldButton.interactable = foldButtonEnabled;
+        _auctionPanelNameText.SetText(bidderName);
+        _auctionPanelImage.sprite = bidderSprite;
+    }
+    
+    public void DisableAuctionButtons()
+    {
+        bidButton.interactable = false;
+        foldButton.interactable = false;
+    }
+
+    public void UpdateAuctionPrice(int newValue)
+    {
+        _auctionPanelPriceText.SetText("£"+newValue);
+    }
+
+    public void UpdateBidButtonAmount(int auctionPrice, int bidAmount)
+    {
+        // TODO store Text variable
+        bidButton.GetComponentInChildren<TMP_Text>().SetText("BID £" + (auctionPrice + bidAmount) + "\n(+£" + bidAmount + ")");
+    }
+    
     public void ShowGoToJailPopup() => goToJailPanel.SetActive(true);
     public void HideGoToJailPopup() => goToJailPanel.SetActive(false);
 
@@ -136,7 +192,10 @@ public class UIManager : Singleton<UIManager>
         payRentPanel.SetActive(true);
     }
     public void HidePayRentPopup() => payRentPanel.SetActive(false);
-    
+
+    public void ShowBotDecisionDialog() => botDecisionDialogPanel.SetActive(true);
+    public void HideBotDecisionDialog() => botDecisionDialogPanel.SetActive(false);
+
     /// <summary>
     /// Returns the next available UI panel and makes it visible
     /// </summary>
