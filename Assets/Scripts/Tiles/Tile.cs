@@ -11,8 +11,6 @@ namespace Tiles
         public string Name { get; protected set; }
         public GameObject Card { get; protected set; }
         
-        [SerializeField] private Vector2 position;
-
         public void SetUp(string name)
         {
             Name = name;
@@ -72,16 +70,6 @@ namespace Tiles
         protected virtual void OnMouseExit()
         {
             HideCard();
-        }
-        
-        public void setPosition(float x,float y)
-        {
-            position = new Vector2(x,y);
-        }
-
-        public Vector2 getPosition()
-        {
-            return position;
         }
     }
 }
