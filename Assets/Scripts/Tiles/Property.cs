@@ -39,20 +39,26 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
-            // TODO check for at least 2 players passing go
-            if (OwnedBy == null)
+            if (OwnedBy != null) 
             {
-                // if property is owned by bank, player can buy for the Cost, or auction
-                player.ForSaleDecision(this);
+                if (Mortgaged || OwnedBy == player || OwnedBy.InJail)
+                {
+                    player.CompleteTurn();
+                }
+                else
+                {
+                    PayRent(player);
+                }
             }
-            else if (Mortgaged || OwnedBy == player || OwnedBy.InJail)
+            else if (player.PassedGo)
             {
-                // If property is mortgaged, player is already the owner, or the owner is in jail do nothing
-                player.CompleteTurn();
+                // rare case where player cant afford property and 2 players haven't passed go, neither option will be available
+                // would need to check here for that before showing prompt
+                player.ForSaleDecision(this);
             }
             else
             {
-                PayRent(player);
+                player.CompleteTurn();
             }
         }
         

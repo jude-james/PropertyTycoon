@@ -11,8 +11,10 @@ using Random = UnityEngine.Random;
 /// </summary>
 public class Player : MonoBehaviour
 {
+    public int moveTest;
+    
     private static Player _activePlayer;
-    protected static Player _currentBidder;
+    protected static Player CurrentBidder;
 
     public Sprite Sprite { get; private set; }
     private Animator _animator;
@@ -48,7 +50,7 @@ public class Player : MonoBehaviour
     private int _newTileIndex;
     
     private const int PassedGoAmount = 200;
-    public bool PassedGo { get; private set; }
+    public bool PassedGo { get; private set; } = true; // TODO change to false once finished testing
     
     private const int MoveSpeed = 10;
     
@@ -151,7 +153,8 @@ public class Player : MonoBehaviour
         }
         else
         {
-            ShiftTileIndex(DiceRoll);
+            //ShiftTileIndex(DiceRoll);
+            ShiftTileIndex(moveTest);
             MoveToTile(Direction.Shortest);
         }
     }
@@ -398,11 +401,10 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Decision point for purchasing a property, shows for sale prompt and disables buttons accordingly
     /// </summary>
-    /// <param name="property"></param>
+    /// <param name="property">The property the player landed on</param>
     public virtual void ForSaleDecision(Property property)
     {
-        // TODO auctionButtonEnabled, board.CanAuction or something
-        UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, true, property);
+        UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, Board.Instance.CanAuction(), property);
     }
 
     /// <summary>
@@ -447,7 +449,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public virtual void BidDecision()
     {
-        _currentBidder = this;
+        CurrentBidder = this;
         
         var canBid = _money >= Board.Instance.AuctionPrice + Board.Instance.BidAmount;
         UIManager.Instance.UpdateAuctionPrompt(canBid, true, Name, Sprite);
@@ -455,14 +457,14 @@ public class Player : MonoBehaviour
 
     protected void OnBid()
     {
-        if (_currentBidder != this) return;
+        if (CurrentBidder != this) return;
         
         Board.Instance.EndBid(false, Board.Instance.BidAmount);
     }
 
     protected void OnFold()
     {
-        if (_currentBidder != this) return;
+        if (CurrentBidder != this) return;
         
         Board.Instance.EndBid(true);
     }

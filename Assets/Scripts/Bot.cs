@@ -63,7 +63,7 @@ public class Bot : Player
 
     public override void BidDecision()
     {
-        _currentBidder = this;
+        CurrentBidder = this;
         
         UIManager.Instance.UpdateAuctionPrompt(false, false, Name, Sprite);
         UIManager.Instance.ShowBotDecisionDialog();
@@ -80,7 +80,7 @@ public class Bot : Player
         // TODO this function should have access to the property, the current bid price, and the players in the bid,
         // so bot can make a decision
         // bot can chose to bid, big bid, or fold
-        // bot should check it can afford new bid price 
+        // bot should check it can afford new bid price and also check if auctioning is possible (use Board.CanAuction...)
         
         OnFold();
         //OnBid();

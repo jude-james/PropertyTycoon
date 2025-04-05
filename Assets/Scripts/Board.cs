@@ -4,7 +4,6 @@ using System.Linq;
 using Tiles;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// Property Tycoon board, acts as a game manager. Tracks board tiles, bank, cards, and players
@@ -78,7 +77,7 @@ public class Board : Singleton<Board>
         
         // Manually assigning players for testing purposes, will get players from main menu later
         // players will also become a list so they can be added and removed once a player declares bankruptcy 
-        Players = new Player[4];
+        Players = new Player[3];
 
         Players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         Players[0].SetSprite(tokens[0]);
@@ -88,13 +87,9 @@ public class Board : Singleton<Board>
         Players[1].SetSprite(tokens[1]);
         Players[1].Name = tokens[1].name;
         
-        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
+        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         Players[2].SetSprite(tokens[2]);
         Players[2].Name = tokens[2].name;
-        
-        Players[3] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
-        Players[3].SetSprite(tokens[3]);
-        Players[3].Name = tokens[3].name;
         
         _currentPlayer = Players[_currentPlayerIndex % Players.Length];
         _currentPlayer.StartTurn();
@@ -130,7 +125,7 @@ public class Board : Singleton<Board>
         
         foreach (var player in Players)
         {
-            if (!player.InJail) // TODO && player.PassedGo...
+            if (!player.InJail && player.PassedGo)
             {
                 _bidders.Add(player);
             }
@@ -204,6 +199,16 @@ public class Board : Singleton<Board>
         return Tiles.FindIndex(tile => tile.Name == name);
     }
 
+    /// <summary>
+    /// Returns true if at least 2 players have passed go, since that is the minimum needed for an auction
+    /// </summary>
+    /// <returns> Whether or not auctioning is possible </returns>
+    public bool CanAuction()
+    {
+        var count = Players.Count(player => player.PassedGo);
+        return count > 1;
+    }
+    
     public void GiveTitleDeed(Property property)
     {
         TitleDeeds[property.PropertyNumber] = property;
