@@ -96,9 +96,16 @@ namespace Tiles
             }
             else if (player.PassedGo)
             {
-                // rare case where player cant afford property and 2 players haven't passed go, neither option will be available
-                // would need to check here for that before showing prompt
-                player.ForSaleDecision(this);
+                // if in the rare case the player can't auction or buy the property,
+                // don't show the prompt at all because neither button will be available
+                if (!Board.Instance.CanAuction() && player.Money < Cost)
+                {
+                    player.CompleteTurn();
+                }
+                else
+                {
+                    player.ForSaleDecision(this);
+                }
             }
             else
             {

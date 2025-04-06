@@ -202,13 +202,14 @@ public class Board : Singleton<Board>
     }
 
     /// <summary>
-    /// Returns true if at least 2 players have passed go, since that is the minimum needed for an auction
+    /// Returns true if at least 2 players have passed go and are out of jail
     /// </summary>
-    /// <returns> Whether or not auctioning is possible </returns>
+    /// <returns>Whether or not auctioning is possible</returns>
     public bool CanAuction()
     {
-        var count = Players.Count(player => player.PassedGo);
-        return count > 1;
+        var passedGoCount = Players.Count(player => player.PassedGo);
+        var outOfJailCount = Players.Count(player => !player.InJail);
+        return passedGoCount > 1 && outOfJailCount > 1;
     }
     
     public void GiveTitleDeed(Property property)

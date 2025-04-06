@@ -59,6 +59,7 @@ public class Bot : Player
         
         // bot can choose to buy or auction
         // Bot should check it has enough money first
+        // bot should check if auctioning is possible with Board.CanAuction()
         
         OnBuy();
     }

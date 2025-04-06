@@ -4,6 +4,7 @@ using System.Linq;
 using Tiles;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -25,7 +26,7 @@ public class Player : MonoBehaviour
     private TMP_Text _getOutOfJailFreeCardsText;
 
     public string Name { get; set; }
-    private int _money = 1500;
+    public int Money { get; private set; } = 1500;
 
     private Property[] TitleDeeds { get; set; }
     
@@ -362,7 +363,7 @@ public class Player : MonoBehaviour
     /// </summary>
     protected virtual void InJailDecision()
     {
-        UIManager.Instance.ShowInJailPrompt(_money >= PostBailAmount, _getOutOfJailFreeCards.Count > 0, true);
+        UIManager.Instance.ShowInJailPrompt(Money >= PostBailAmount, _getOutOfJailFreeCards.Count > 0, true);
     }
 
     /// <summary>
@@ -419,7 +420,7 @@ public class Player : MonoBehaviour
     /// <param name="property">The property the player landed on</param>
     public virtual void ForSaleDecision(Property property)
     {
-        UIManager.Instance.ShowForSalePrompt(_money >= property.Cost, Board.Instance.CanAuction(), property);
+        UIManager.Instance.ShowForSalePrompt(Money >= property.Cost, Board.Instance.CanAuction(), property);
     }
 
     /// <summary>
@@ -466,7 +467,7 @@ public class Player : MonoBehaviour
     {
         CurrentBidder = this;
         
-        var canBid = _money >= Board.Instance.AuctionPrice + Board.Instance.BidAmount;
+        var canBid = Money >= Board.Instance.AuctionPrice + Board.Instance.BidAmount;
         UIManager.Instance.UpdateAuctionPrompt(canBid, true, Name, Sprite);
     }
 
@@ -538,7 +539,7 @@ public class Player : MonoBehaviour
         // TODO highlight all properties to unmortgage but also cost less to unmortgage than player funds
         foreach (var property in TitleDeeds)
         {
-            if (property != null && property.Mortgaged && _money >= property.UnmortgagedValue)
+            if (property != null && property.Mortgaged && Money >= property.UnmortgagedValue)
             {
                 property.ShowOutline(Color.white, Color.blue);
                 property.InUnmortgageSelection = true;
@@ -586,8 +587,8 @@ public class Player : MonoBehaviour
     /// <param name="amount">The amount of money to give the player.</param>
     public void GiveMoney(int amount)
     {
-        _money += amount;
-        UIManager.Instance.AnimateMoney(_moneyText, _money);
+        Money += amount;
+        UIManager.Instance.AnimateMoney(_moneyText, Money);
     }
 
     /// <summary>
@@ -596,7 +597,7 @@ public class Player : MonoBehaviour
     /// <param name="amount">The amount of money to take from the player.</param>
     public void TakeMoney(int amount)
     {
-        var newMoney = _money - amount;
+        var newMoney = Money - amount;
 
         if (newMoney < 0)
         {
@@ -605,8 +606,8 @@ public class Player : MonoBehaviour
         }
         else
         {
-            _money = newMoney;
-            UIManager.Instance.AnimateMoney(_moneyText, _money);
+            Money = newMoney;
+            UIManager.Instance.AnimateMoney(_moneyText, Money);
         }
     }
 
@@ -662,7 +663,7 @@ public class Player : MonoBehaviour
         nameText.SetText(Name);
 
         _moneyText = _infoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
-        _moneyText.SetText("£"+_money);
+        _moneyText.SetText("£"+Money);
         
         _getOutOfJailFreeCardsText = _infoPanel.transform.GetChild(4).GetComponent<TMP_Text>();
         UpdateGetOutOfJailFreeCardNumber();
