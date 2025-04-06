@@ -128,8 +128,8 @@ public class UIManager : Singleton<UIManager>
         _mortgagePanelNameText = mortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _mortgagePanelImage = mortgagePanel.transform.GetChild(2).GetComponent<Image>();
         
-        _unmortgagePanelNameText = mortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
-        _unmortgagePanelImage = mortgagePanel.transform.GetChild(2).GetComponent<Image>();
+        _unmortgagePanelNameText = unmortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _unmortgagePanelImage = unmortgagePanel.transform.GetChild(2).GetComponent<Image>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);

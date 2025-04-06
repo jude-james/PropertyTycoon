@@ -44,7 +44,7 @@ public class Board : Singleton<Board>
     private Player _currentPlayer;
     private int _currentPlayerIndex;
 
-    private readonly List<Player> _bidders = new();
+    private List<Player> _bidders = new();
     private Player _currentBidder;
     private int _currentBidderIndex;
     public int AuctionPrice { get; private set; }
@@ -122,7 +122,9 @@ public class Board : Singleton<Board>
         _auctionProperty = property;
         AuctionPrice = 20;
         UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
-        
+        UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
+
+        _bidders = new List<Player>();
         foreach (var player in Players)
         {
             if (!player.InJail && player.PassedGo)
