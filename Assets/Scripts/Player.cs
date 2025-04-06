@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tiles;
 using TMPro;
 using UnityEngine;
@@ -153,8 +154,8 @@ public class Player : MonoBehaviour
         }
         else
         {
-            //ShiftTileIndex(DiceRoll);
-            ShiftTileIndex(moveTest);
+            ShiftTileIndex(DiceRoll);
+            //ShiftTileIndex(moveTest);
             MoveToTile(Direction.Shortest);
         }
     }
@@ -272,11 +273,21 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Decision point for ending turn
+    /// Decision point for ending turn, gives player game options 
     /// </summary>
     protected virtual void EndTurnDecision()
     {
         UIManager.Instance.ShowEndTurnPrompt();
+        
+        if (TitleDeeds.Any(property => property != null && !property.Mortgaged))
+        {
+            UIManager.Instance.EnableMortgageButton();
+        }
+
+        if (TitleDeeds.Any(property => property != null && property.Mortgaged))
+        {
+            UIManager.Instance.EnableUnmortgageButton();
+        }
     }
     
     /// <summary>
@@ -287,6 +298,10 @@ public class Player : MonoBehaviour
         if (this != _activePlayer) return;
         
         UIManager.Instance.HideEndTurnPrompt();
+        
+        UIManager.Instance.DisableMortgageButton();
+        UIManager.Instance.DisableUnmortgageButton();
+        
         Board.Instance.EndTurn();
     }
 
@@ -485,6 +500,85 @@ public class Player : MonoBehaviour
 
         property.OwnedBy = this;
     }
+
+    /// <summary>
+    /// Gets and outlines all properties that are unmortgaged and allows the player to click on them
+    /// </summary>
+    protected void OnMortgage()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideEndTurnPrompt();
+        UIManager.Instance.DisableMortgageButton();
+        UIManager.Instance.DisableUnmortgageButton();
+        UIManager.Instance.ShowMortgagePanel();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null && !property.Mortgaged)
+            {
+                property.ShowOutline(Color.white, Color.blue);
+                property.InMortgageSelection = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets and outlines all properties that are mortgaged and within the funds of the player to unmortgage
+    /// </summary>
+    protected void OnUnmortgage()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideEndTurnPrompt();
+        UIManager.Instance.DisableMortgageButton();
+        UIManager.Instance.DisableUnmortgageButton();
+        UIManager.Instance.ShowUnmortgagePanel();
+        
+        // TODO highlight all properties to unmortgage but also cost less to unmortgage than player funds
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null && property.Mortgaged && _money >= property.UnmortgagedValue)
+            {
+                property.ShowOutline(Color.white, Color.blue);
+                property.InUnmortgageSelection = true;
+            }
+        }
+    }
+    
+    protected void OnEndMortgage()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideMortgagePanel();
+        EndTurnDecision(); // TODO if mortgaging is happening due to not enough funds, end turn decision wont make sense, find workaround
+
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InMortgageSelection = false;
+            }
+        }
+    }
+
+    protected void OnEndUnmortgage()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideUnmortgagePanel();
+        EndTurnDecision();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InUnmortgageSelection = false;
+            }
+        }
+    }
     
     /// <summary>
     /// Gives the player a specified amount of money.
@@ -546,6 +640,12 @@ public class Player : MonoBehaviour
         UIManager.Instance.postBailButton.onClick.AddListener(OnPostBail);
         UIManager.Instance.getOutOfJailFreeButton.onClick.AddListener(OnGetOutOfJailFree);
         UIManager.Instance.remainInJailButton.onClick.AddListener(OnRemainInJail);
+        
+        UIManager.Instance.mortgageButton.onClick.AddListener(OnMortgage);
+        UIManager.Instance.unmortgageButton.onClick.AddListener(OnUnmortgage);
+        
+        UIManager.Instance.endMortgageButton.onClick.AddListener(OnEndMortgage);
+        UIManager.Instance.endUnmortgageButton.onClick.AddListener(OnEndUnmortgage);
     }
     
     /// <summary>

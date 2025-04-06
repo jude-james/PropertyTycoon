@@ -1,3 +1,5 @@
+using TMPro;
+
 namespace Tiles
 {
     public class Tax : Tile
@@ -8,6 +10,16 @@ namespace Tiles
         {
             _amount = amount;
             base.SetUp(name);
+        }
+        
+        protected override void SetBoardTile()
+        {
+            base.SetBoardTile();
+            if (transform.childCount > 0)
+            {
+                var amountText = transform.GetChild(1).GetComponent<TMP_Text>();
+                amountText.SetText("PAY £"+_amount);
+            }
         }
         
         public override void OnLanded(Player player)

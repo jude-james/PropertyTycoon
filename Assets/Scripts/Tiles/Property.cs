@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -10,21 +11,40 @@ namespace Tiles
     //[System.Serializable]
     public class Property : Tile
     {
-        public Player OwnedBy { get; set; } // initially owned by the bank, null can be the bank for now
+        public Player OwnedBy { get; set; }
         public int Cost { get; private set; }
         public int PropertyNumber { get; private set; }
         protected int CurrentRent;
         
-        protected bool Mortgaged;
-        private GameObject _mortgagedCard; // Each property can be turned over to see the mortgage into
+        public bool Mortgaged { get; set; }
+        public int MortgagedValue { get; private set; }
+        public int UnmortgagedValue { get; private set; }
+        
+        private GameObject _mortgagedCard;
         
         private readonly WaitForSeconds _payRentPopupTime = new(3);
-
+        
         protected void SetUp(string name, int cost, int propertyNumber)
         {
             Cost = cost;
             PropertyNumber = propertyNumber;
+            MortgagedValue = cost / 2;
+            UnmortgagedValue = (int) (MortgagedValue * 1.1f);
+            Name = name;
+            SetMortgagedCard();
             base.SetUp(name);
+        }
+
+        private void SetMortgagedCard()
+        {
+            _mortgagedCard = Instantiate(Resources.Load("Prefabs/Cards/Mortgaged")) as GameObject;
+            if (_mortgagedCard != null)
+            {
+                var cardSprite = _mortgagedCard.transform.GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
+                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("MORTGAGE VALUE £" + MortgagedValue);
+                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("TO UNMORTGAGE, PAY £" + UnmortgagedValue);
+            }
         }
         
         protected override void SetBoardTile()
@@ -34,6 +54,30 @@ namespace Tiles
             {
                 var costText = transform.GetChild(1).GetComponent<TMP_Text>();
                 costText.SetText("£"+Cost);
+            }
+        }
+
+        protected override void ShowCard()
+        {
+            if (Mortgaged)
+            {
+                if (_mortgagedCard != null) _mortgagedCard.SetActive(true);
+            }
+            else
+            {
+                if (Card != null) Card.SetActive(true);
+            }
+        }
+        
+        protected override void HideCard()
+        {
+            if (Mortgaged)
+            {
+                if (_mortgagedCard != null) _mortgagedCard.SetActive(false);
+            }
+            else
+            {
+                if (Card != null) Card.SetActive(false);
             }
         }
         
@@ -77,6 +121,45 @@ namespace Tiles
             yield return _payRentPopupTime;
             UIManager.Instance.HidePayRentPopup();
             player.CompleteTurn();
+        }
+
+        /// <summary>
+        /// Mortgages this property
+        /// </summary>
+        private void Mortgage()
+        {
+            Mortgaged = true;
+            OwnedBy.GiveMoney(MortgagedValue);
+            
+            HideOutline();
+            Card.SetActive(false);
+            InMortgageSelection = false;
+        }
+
+        /// <summary>
+        /// Unmortgages this property
+        /// </summary>
+        private void Unmortgage()
+        {
+            Mortgaged = false;
+            OwnedBy.TakeMoney(UnmortgagedValue);
+            
+            HideOutline();
+            _mortgagedCard.SetActive(false);
+            InUnmortgageSelection = false;
+        }
+        
+        private void OnMouseDown()
+        {
+            if (InMortgageSelection)
+            {
+                Mortgage();
+            }
+
+            if (InUnmortgageSelection)
+            {
+                Unmortgage();
+            }
         }
     }
 }

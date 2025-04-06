@@ -73,10 +73,12 @@ namespace Tiles
 
         protected override void OnMouseEnter()
         {
+            ShowOutline();
         }
 
         protected override void OnMouseExit()
         {
+            HideOutline();
         }
     }
 }

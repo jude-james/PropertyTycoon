@@ -3,6 +3,7 @@ using System.Collections;
 using Tiles;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -29,6 +30,8 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject forSalePanel;
     [SerializeField] private GameObject auctionPanel;
     [SerializeField] private GameObject inJailPanel;
+    [SerializeField] private GameObject mortgagePanel;
+    [SerializeField] private GameObject unmortgagePanel;
     
     [Header("Game Popups")]
     [SerializeField] private GameObject goToJailPanel;
@@ -48,6 +51,12 @@ public class UIManager : Singleton<UIManager>
     public Button postBailButton;
     public Button getOutOfJailFreeButton;
     public Button remainInJailButton;
+
+    public Button mortgageButton;
+    public Button unmortgageButton;
+
+    public Button endMortgageButton;
+    public Button endUnmortgageButton;
     
     private TMP_Text _rollDicePanelNameText;
     private Image _rollDicePanelImage;
@@ -76,6 +85,12 @@ public class UIManager : Singleton<UIManager>
     private Image _payRentPanelPlayerImage;
     private TMP_Text _payRentPanelOwnedByNameText;
     private Image _payRentPanelOwnedByImage;
+
+    private TMP_Text _mortgagePanelNameText;
+    private Image _mortgagePanelImage;
+    
+    private TMP_Text _unmortgagePanelNameText;
+    private Image _unmortgagePanelImage;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
     private const float MoneyChangeDuration = 1.5f;
@@ -109,6 +124,12 @@ public class UIManager : Singleton<UIManager>
         _payRentPanelPlayerImage = payRentPanel.transform.GetChild(3).GetComponent<Image>();
         _payRentPanelOwnedByNameText = payRentPanel.transform.GetChild(5).GetComponent<TMP_Text>();
         _payRentPanelOwnedByImage = payRentPanel.transform.GetChild(6).GetComponent<Image>();
+
+        _mortgagePanelNameText = mortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _mortgagePanelImage = mortgagePanel.transform.GetChild(2).GetComponent<Image>();
+        
+        _unmortgagePanelNameText = mortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _unmortgagePanelImage = mortgagePanel.transform.GetChild(2).GetComponent<Image>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
@@ -193,6 +214,18 @@ public class UIManager : Singleton<UIManager>
     }
     public void HidePayRentPopup() => payRentPanel.SetActive(false);
 
+    public void ShowMortgagePanel() => mortgagePanel.SetActive(true);
+    public void HideMortgagePanel() => mortgagePanel.SetActive(false);
+    
+    public void ShowUnmortgagePanel() => unmortgagePanel.SetActive(true);
+    public void HideUnmortgagePanel() => unmortgagePanel.SetActive(false);
+    
+    public void EnableMortgageButton() => mortgageButton.interactable = true;
+    public void DisableMortgageButton() => mortgageButton.interactable = false;
+    
+    public void EnableUnmortgageButton() => unmortgageButton.interactable = true;
+    public void DisableUnmortgageButton() => unmortgageButton.interactable = false;
+    
     public void ShowBotDecisionDialog() => botDecisionDialogPanel.SetActive(true);
     public void HideBotDecisionDialog() => botDecisionDialogPanel.SetActive(false);
 
@@ -227,6 +260,12 @@ public class UIManager : Singleton<UIManager>
         
         _payRentPanelPlayerNameText.SetText(name);
         _payRentPanelPlayerImage.sprite = sprite;
+        
+        _mortgagePanelNameText.SetText(name);
+        _mortgagePanelImage.sprite = sprite;
+        
+        _unmortgagePanelNameText.SetText(name);
+        _unmortgagePanelImage.sprite = sprite;
     }
 
     /// <summary>
@@ -291,5 +330,10 @@ public class UIManager : Singleton<UIManager>
             var alpha = titleDeeds[i] == null ? unownedAlpha : ownedAlpha;
             image.color = new Color(image.color.r, image.color.g, image.color.b, alpha);
         }
+    }
+
+    public void OnMainMenuClick()
+    {
+        SceneManager.LoadScene(0);
     }
 }

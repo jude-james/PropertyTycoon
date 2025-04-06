@@ -17,7 +17,9 @@ public class Bot : Player
 
     protected override void EndTurnDecision()
     {
-        // Bot can choose to 'click' end turn, or, at this point, it can choose the other options... auction, build, sell, trade...
+        // Bot can choose to 'click' end turn, or, at this point, it can choose the other options... auction, build, sell...
+        // bot should check it has enough funds before unmortgaging 
+        // TODO test mortgaging, call OnMortgage(), OnEndMortgage(), property.Mortgage()
         OnEndTurn();
     }
 
