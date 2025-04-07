@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 public class BoardTest : MonoBehaviour
 {
     [Test]
-    public void BoardInitizedCorrectly() {
+    public void BoardInitializedCorrectly() {
         // test board reading logic
         string[] lines = System.IO.File.ReadAllLines("Assets/CSVFiles/PropertyTycoonBoardDataImproved(Sheet1).csv");
         string[] propertyNames = new string[lines.Length - 1]; // skip headers
