@@ -21,7 +21,6 @@ public class PlayerMoveTest : MonoBehaviour
         // Calculate new position (with wrap-around logic)
         int newPosition = (currentPosition + moveAmount) % 40; // 40 == board size
         
-        // Assert
         TestContext.Out.WriteLine($"Starting Position: {currentPosition}");
         TestContext.Out.WriteLine($"Dice Roll: {dice1} + {dice2} = {moveAmount}");
         TestContext.Out.WriteLine($"New Position: {newPosition}");

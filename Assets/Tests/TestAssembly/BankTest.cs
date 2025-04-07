@@ -10,7 +10,7 @@ public class BankTest : MonoBehaviour
     // mock player for testing, ported core functionality from Player.cs
     private class MockPlayer
     {
-        public int Money { get; private set; } = 1500; // Starting money from your Player.cs
+        public int Money { get; private set; } = 1500;
         public List<int> OwnedProperties { get; private set; } = new List<int>();
 
         public bool GiveMoney(int amount)
@@ -42,7 +42,7 @@ public class BankTest : MonoBehaviour
     {
         MockPlayer player = new MockPlayer();
         int initialMoney = player.Money;
-        int passGoAmount = 200; // From your codebase
+        int passGoAmount = 200; 
 
         bool transactionSuccess = player.GiveMoney(passGoAmount);
 
@@ -73,8 +73,8 @@ public class BankTest : MonoBehaviour
     {
         MockPlayer owner = new MockPlayer();
         MockPlayer buyer = new MockPlayer();
-        int propertyId = 5; // Brighton Station from your board
-        int propertyCost = 200; // From your CSV
+        int propertyId = 5; 
+        int propertyCost = 200; 
 
         // Set up initial ownership
         owner.AddProperty(propertyId);
