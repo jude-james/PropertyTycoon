@@ -43,7 +43,7 @@ public class Bot : Player
         // Bot can choose to post bail, use card or stay in jail
         
         // In this simple version, the bot will try and use its card first, then try and pay 50, then finally remain in jail
-        if (GetOutOfJailFreeCards.Count > 0) // <- Make sure bot checks it can do things, every if statement is necessary!
+        if (GetOutOfJailFreeCards.Count > 0) // <- Make sure bot checks it can do things, or game breaks without if statements
         {
             OnGetOutOfJailFree();
         }
@@ -142,7 +142,7 @@ public class Bot : Player
                 if (Money >= 0)
                 {
                     CompleteTurn();
-                    yield break;
+                    yield break; // <- equivalent to return for IEnumerator 
                 }
             }
         }

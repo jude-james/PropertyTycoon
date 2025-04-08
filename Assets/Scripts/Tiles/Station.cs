@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -36,7 +37,16 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // TODO figure out rent based on how many stations OwnedBy owns
+            var numberOfStationsOwned = OwnedBy.TitleDeeds.Count(property => property != null && property is Station);
+            CurrentRent = numberOfStationsOwned switch
+            {
+                1 => _rent1,
+                2 => _rent2,
+                3 => _rent3,
+                4 => _rent4,
+                _ => CurrentRent
+            };
+            
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
             

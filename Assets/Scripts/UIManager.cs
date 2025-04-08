@@ -279,6 +279,14 @@ public class UIManager : Singleton<UIManager>
         
         winnerPanel.SetActive(true);
     }
+
+    public void DisableSideButtons()
+    {
+        DisableMortgageButton();
+        DisableUnmortgageButton();
+        DisableSellPropertyButton();
+        // TODO disable build and sell buildings buttons
+    }
     
     /// <summary>
     /// Returns the next available UI panel and makes it visible

@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -37,8 +38,12 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // TODO figure out rent current rent based on how many utilities are owned and the dice roll
-            CurrentRent = _rent1 * player.DiceRoll;
+            var numberOfUtilitiesOwned = OwnedBy.TitleDeeds.Count(property => property != null && property is Utility);
+            if (numberOfUtilitiesOwned == 1)
+                CurrentRent = _rent1 * player.DiceRoll;
+            else if (numberOfUtilitiesOwned == 2) 
+                CurrentRent = _rent2 * player.DiceRoll;
+            
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
             

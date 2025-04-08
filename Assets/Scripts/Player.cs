@@ -321,10 +321,7 @@ public class Player : MonoBehaviour
         if (this != _activePlayer) return;
         
         UIManager.Instance.HideEndTurnPrompt();
-        
-        UIManager.Instance.DisableMortgageButton();
-        UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.DisableSellPropertyButton();
+        UIManager.Instance.DisableSideButtons();
         
         Board.Instance.EndTurn();
     }
@@ -529,9 +526,7 @@ public class Player : MonoBehaviour
         if (_activePlayer != this) return;
         
         UIManager.Instance.HideEndTurnPrompt();
-        UIManager.Instance.DisableMortgageButton();
-        UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.DisableSellPropertyButton();
+        UIManager.Instance.DisableSideButtons();
         
         UIManager.Instance.ShowMortgagePanel();
 
@@ -550,11 +545,8 @@ public class Player : MonoBehaviour
     {
         if (_activePlayer != this) return;
         
-        // todo group these into UIManager.HideGameButtons() or something
         UIManager.Instance.HideEndTurnPrompt();
-        UIManager.Instance.DisableMortgageButton();
-        UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.DisableSellPropertyButton();
+        UIManager.Instance.DisableSideButtons();
         
         UIManager.Instance.ShowUnmortgagePanel();
 
@@ -605,9 +597,7 @@ public class Player : MonoBehaviour
         if (_activePlayer != this) return;
         
         UIManager.Instance.HideEndTurnPrompt();
-        UIManager.Instance.DisableMortgageButton();
-        UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.DisableSellPropertyButton();
+        UIManager.Instance.DisableSideButtons();
         
         UIManager.Instance.ShowSellPropertyPanel();
 
@@ -861,8 +851,7 @@ public class Player : MonoBehaviour
         _animator.enabled = false;
         transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
     }
-
-
+    
     /// <summary>
     /// Gets the current tile index of the player. This method is primarily used for unit testing
     /// to verify player position on the board and movement logic.
