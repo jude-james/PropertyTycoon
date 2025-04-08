@@ -11,36 +11,24 @@ public class DiceRollTest : MonoBehaviour
 public void CorrectDiceRoll() {
     // basic passing test -- if this doesn't compile it's not a code error
     // it's a unity setting/package
-    int dice1 = 3;
-    int dice2 = 2;
+    int dice1 = Random.Range(1, 7);  // Simulates first die roll (1-6)
+    int dice2 = Random.Range(1, 7);  // Simulates second die roll (1-6)
+    
+    // Act
     int total = dice1 + dice2;
-    TestContext.Out.WriteLine($"Sum: {total}"); // for testrunner
-    Assert.AreEqual(5, total);
+    
+    // Assert
+    TestContext.Out.WriteLine($"Dice 1: {dice1}");
+    TestContext.Out.WriteLine($"Dice 2: {dice2}");
+    TestContext.Out.WriteLine($"Sum: {total}");
+    
+    Assert.GreaterOrEqual(dice1, 1, "First die should be at least 1");
+    Assert.LessOrEqual(dice1, 6, "First die should be at most 6");
+    Assert.GreaterOrEqual(dice2, 1, "Second die should be at least 1");
+    Assert.LessOrEqual(dice2, 6, "Second die should be at most 6");
+    Assert.GreaterOrEqual(total, 2, "Total should be at least 2");
+    Assert.LessOrEqual(total, 12, "Total should be at most 12");
+    Assert.AreEqual(dice1 + dice2, total, "Total should equal sum of dice");
 
 }
-
-// below does not work -- need to ask Rudy/Jude abt adding new namespace for player/board/tile etc
-// public void PlayerMovesToCorrectTile()
-// {
-//     // Arrange
-//     Player player = new Player();
-//     player.CurrentTile = Board.Instance.Tiles[0]; // Start on the first tile
-//     board.Tiles = new List<Tile>
-//     {
-//         new Tile { name = "Start" },
-//         new Tile { name = "Property 1" },
-//         new Tile { name = "Property 2" },
-//         new Tile { name = "Property 3" },
-//         new Tile { name = "Property 4" }
-//     };
-//     player.CurrentTile = board.Tiles[0]; // Start on the first tile
-
-//     // Act
-//     Tile landedTile = player._testMoveToTile(2, 3); // Move 5 spaces
-
-//     TestContext.Out.WriteLine($"landedTile: {landedTile}");
-
-//     // Assert
-//     Assert.AreEqual("Brighton Station", landedTile.name); // Check if the player landed on the correct tile
-// }
 }

@@ -861,4 +861,15 @@ public class Player : MonoBehaviour
         _animator.enabled = false;
         transform.rotation = Quaternion.Euler(transform.rotation.x, transform.rotation.y, 0);
     }
+
+
+    /// <summary>
+    /// Gets the current tile index of the player. This method is primarily used for unit testing
+    /// to verify player position on the board and movement logic.
+    /// </summary>
+    /// <returns>The index of the tile the player is currently on</returns>
+    public int GetCurrentTileIndex()
+    {
+        return _currentTileIndex;
+    }
 }
