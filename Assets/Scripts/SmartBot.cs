@@ -5,7 +5,8 @@ using UnityEngine;
 public class SmartBot : Player
 {
     private readonly WaitForSeconds _decisionMakingTime = new(2.5f); // Simulate bot thinking and give time for UI elements to show
-    
+    private readonly WaitForSeconds _bidDecisionMakingTime = new(1f);
+
     protected override void RollDiceDecision()
     {
         OnRollDice();
@@ -63,7 +64,7 @@ public class SmartBot : Player
 
     private IEnumerator BidDecisionCoroutine()
     {
-        yield return _decisionMakingTime;
+        yield return _bidDecisionMakingTime;
         
         UIManager.Instance.HideBotDecisionDialog();
         

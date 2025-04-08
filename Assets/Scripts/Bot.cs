@@ -8,6 +8,7 @@ using UnityEngine;
 public class Bot : Player
 {
     private readonly WaitForSeconds _decisionMakingTime = new(2.5f); // Simulate bot thinking and give time for UI elements to show
+    private readonly WaitForSeconds _bidDecisionMakingTime = new(1f);
     
     protected override void RollDiceDecision()
     {
@@ -95,7 +96,7 @@ public class Bot : Player
 
     private IEnumerator BidDecisionCoroutine()
     {
-        yield return _decisionMakingTime;
+        yield return _bidDecisionMakingTime;
         
         UIManager.Instance.HideBotDecisionDialog();
         
@@ -141,11 +142,11 @@ public class Bot : Player
                 if (Money >= 0)
                 {
                     CompleteTurn();
-                    break;
+                    yield break;
                 }
             }
         }
-
+        
         if (CanSellProperty())
         {
             var sellableProperties = GetSellableProperties();
@@ -155,7 +156,7 @@ public class Bot : Player
                 if (Money >= 0)
                 {
                     CompleteTurn();
-                    break;
+                    yield break;
                 }
             }
         }
