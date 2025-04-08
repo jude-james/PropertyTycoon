@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tiles
 {
@@ -15,8 +16,8 @@ namespace Tiles
         private int _houseCost;
         private int _hotelCost;
 
-        private int _currentHouses;
-        private int _currentHotels;
+        public int CurrentHouses { get; private set; }
+        public int CurrentHotels { get; private set; }
         
         public void SetUp(string name, int cost, int propertyNumber, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
         {
@@ -55,6 +56,14 @@ namespace Tiles
             OwnedBy.GiveMoney(CurrentRent);
             
             base.PayRent(player);
+        }
+
+        /// <summary>
+        /// Gets the value of all houses and hotels on this street
+        /// </summary>
+        public int GetBuildingValue()
+        {
+            return CurrentHouses * _houseCost + CurrentHotels * _hotelCost;
         }
     }
 }

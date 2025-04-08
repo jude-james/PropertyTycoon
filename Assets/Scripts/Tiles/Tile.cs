@@ -14,6 +14,7 @@ namespace Tiles
         
         public bool InMortgageSelection { get; set; }
         public bool InUnmortgageSelection { get; set; }
+        public bool InSellPropertySelection { get; set; }
 
         private BoxCollider2D _boxCollider;
         private LineRenderer _lineRenderer;
@@ -108,7 +109,7 @@ namespace Tiles
             }
         }
 
-        public void ShowOutline()
+        protected void ShowOutline()
         {
             _lineRenderer.startColor = _lineStartColour;
             _lineRenderer.endColor = _lineEndColour;
@@ -131,7 +132,7 @@ namespace Tiles
         {
             ShowCard();
 
-            if (!InMortgageSelection && !InUnmortgageSelection)
+            if (!InMortgageSelection && !InUnmortgageSelection && !InSellPropertySelection)
             {
                 ShowOutline();
             }
@@ -141,7 +142,7 @@ namespace Tiles
         {
             HideCard();
 
-            if (!InMortgageSelection && !InUnmortgageSelection)
+            if (!InMortgageSelection && !InUnmortgageSelection && !InSellPropertySelection)
             {
                 HideOutline();
             }

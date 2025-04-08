@@ -4,7 +4,6 @@ using System.Linq;
 using Tiles;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -28,13 +27,13 @@ public class Player : MonoBehaviour
     public string Name { get; set; }
     public int Money { get; private set; } = 1500;
 
-    private Property[] TitleDeeds { get; set; }
+    public Property[] TitleDeeds { get; private set; }
     
     public bool InJail { get; private set; }
     private int _roundsInJail;
     private const int RoundsInJailLimit = 2;
-    private const int PostBailAmount = 50;
-    private List<ActionCard> _getOutOfJailFreeCards;
+    protected const int PostBailAmount = 50;
+    protected List<ActionCard> GetOutOfJailFreeCards;
     
     public int DiceRoll { get; private set; }
     private int _diceRoll1;
@@ -59,12 +58,13 @@ public class Player : MonoBehaviour
     private readonly WaitForSeconds _reactionTime = new(0.5f);
     private readonly WaitForSeconds _pauseBetweenTileTime = new(0.1f);
     private readonly WaitForSeconds _jailPopupTime = new(1.5f);
+    private readonly WaitForSeconds _bankruptPopupTime = new(3f);
     
     private void Start()
     {
         _animator = GetComponent<Animator>();
 
-        _getOutOfJailFreeCards = new List<ActionCard>();
+        GetOutOfJailFreeCards = new List<ActionCard>();
         TitleDeeds = new Property[Board.Instance.TitleDeeds.Length];
         
         AssignButtonEventListeners();
@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
     }
     
     /// <summary>
-    /// Decision point for rolling dice
+    /// Shows prompt to payer or manually rolls if bot
     /// </summary>
     protected virtual void RollDiceDecision()
     {
@@ -257,37 +257,59 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Called once tile functionality is complete and either ends the turn or allows for another turn
+    /// Called once tile functionality is complete and either ends the turn or allows for another turn, ensuring player has positive money
     /// </summary>
     public void CompleteTurn()
     {
-        if (_rolledADouble)
+        if (Money < 0)
         {
-            _rolledADouble = false;
-            StartTurn();
+            if (IsBankrupt())
+            {
+                GoBankrupt();
+            }
+            else
+            {
+                UIManager.Instance.ShowRaiseFundsDialog();
+                RaiseFundsDecision();
+            }
         }
         else
         {
-            _doubleCount = 0;
-            EndTurnDecision();
+            UIManager.Instance.HideRaiseFundsDialog();
+            
+            if (_rolledADouble)
+            {
+                _rolledADouble = false;
+                StartTurn();
+            }
+            else
+            {
+                _doubleCount = 0;
+                EndTurnDecision();
+            }
         }
     }
 
     /// <summary>
-    /// Decision point for ending turn, gives player game options 
+    /// Shows prompts to player or manually decides action if bot 
     /// </summary>
     protected virtual void EndTurnDecision()
     {
         UIManager.Instance.ShowEndTurnPrompt();
         
-        if (TitleDeeds.Any(property => property != null && !property.Mortgaged))
+        if (CanMortgage())
         {
             UIManager.Instance.EnableMortgageButton();
         }
 
-        if (TitleDeeds.Any(property => property != null && property.Mortgaged))
+        if (CanUnmortgage())
         {
             UIManager.Instance.EnableUnmortgageButton();
+        }
+
+        if (CanSellProperty())
+        {
+            UIManager.Instance.EnableSellPropertyButton();
         }
     }
     
@@ -302,6 +324,7 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.DisableMortgageButton();
         UIManager.Instance.DisableUnmortgageButton();
+        UIManager.Instance.DisableSellPropertyButton();
         
         Board.Instance.EndTurn();
     }
@@ -359,11 +382,11 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Decision point for in jail, shows jail prompt and disables buttons accordingly
+    /// Shows prompt to player or manually decides action if bot
     /// </summary>
     protected virtual void InJailDecision()
     {
-        UIManager.Instance.ShowInJailPrompt(Money >= PostBailAmount, _getOutOfJailFreeCards.Count > 0, true);
+        UIManager.Instance.ShowInJailPrompt(Money >= PostBailAmount, GetOutOfJailFreeCards.Count > 0, true);
     }
 
     /// <summary>
@@ -390,7 +413,7 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.HideInJailPrompt();
         
-        var actionCard = _getOutOfJailFreeCards[0];
+        var actionCard = GetOutOfJailFreeCards[0];
         
         if (actionCard.CardType == CardType.PotLuck)
             Board.Instance.PotLuckCards.Enqueue(actionCard);
@@ -415,7 +438,7 @@ public class Player : MonoBehaviour
     }
     
     /// <summary>
-    /// Decision point for purchasing a property, shows for sale prompt and disables buttons accordingly
+    /// Shows for sale prompt to player or manually decides action if bot
     /// </summary>
     /// <param name="property">The property the player landed on</param>
     public virtual void ForSaleDecision(Property property)
@@ -435,10 +458,8 @@ public class Player : MonoBehaviour
         var property = (Property)_currentTile;
         
         TakeMoney(property.Cost);
-
-        TitleDeeds[property.PropertyNumber] = property;
-        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
         
+        GiveTitleDeed(property);
         Board.Instance.TakeTitleDeed(property);
         
         property.OwnedBy = this;
@@ -494,9 +515,7 @@ public class Player : MonoBehaviour
     {
         TakeMoney(price);
         
-        TitleDeeds[property.PropertyNumber] = property;
-        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
-        
+        GiveTitleDeed(property);
         Board.Instance.TakeTitleDeed(property);
 
         property.OwnedBy = this;
@@ -505,55 +524,55 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Gets and outlines all properties that are unmortgaged and allows the player to click on them
     /// </summary>
-    protected void OnMortgage()
+    private void OnMortgage()
     {
         if (_activePlayer != this) return;
         
         UIManager.Instance.HideEndTurnPrompt();
         UIManager.Instance.DisableMortgageButton();
         UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.ShowMortgagePanel();
+        UIManager.Instance.DisableSellPropertyButton();
         
-        foreach (var property in TitleDeeds)
+        UIManager.Instance.ShowMortgagePanel();
+
+        var mortgageableProperties = GetMortgageableProperties();
+        foreach (var property in mortgageableProperties)
         {
-            if (property != null && !property.Mortgaged)
-            {
-                property.ShowOutline(Color.white, Color.blue);
-                property.InMortgageSelection = true;
-            }
+            property.ShowOutline(Color.white, Color.blue);
+            property.InMortgageSelection = true;
         }
     }
 
     /// <summary>
     /// Gets and outlines all properties that are mortgaged and within the funds of the player to unmortgage
     /// </summary>
-    protected void OnUnmortgage()
+    private void OnUnmortgage()
     {
         if (_activePlayer != this) return;
         
+        // todo group these into UIManager.HideGameButtons() or something
         UIManager.Instance.HideEndTurnPrompt();
         UIManager.Instance.DisableMortgageButton();
         UIManager.Instance.DisableUnmortgageButton();
-        UIManager.Instance.ShowUnmortgagePanel();
+        UIManager.Instance.DisableSellPropertyButton();
         
-        // TODO highlight all properties to unmortgage but also cost less to unmortgage than player funds
-        foreach (var property in TitleDeeds)
+        UIManager.Instance.ShowUnmortgagePanel();
+
+        var unmortgageableProperties = GetUnmortgageableProperties();
+        foreach (var property in unmortgageableProperties)
         {
-            if (property != null && property.Mortgaged && Money >= property.UnmortgagedValue)
-            {
-                property.ShowOutline(Color.white, Color.blue);
-                property.InUnmortgageSelection = true;
-            }
+            property.ShowOutline(Color.white, Color.blue);
+            property.InUnmortgageSelection = true;
         }
     }
-    
-    protected void OnEndMortgage()
+
+    private void OnEndMortgage()
     {
         if (_activePlayer != this) return;
         
         UIManager.Instance.HideMortgagePanel();
-        EndTurnDecision(); // TODO if mortgaging is happening due to not enough funds, end turn decision wont make sense, find workaround
-
+        CompleteTurn();
+        
         foreach (var property in TitleDeeds)
         {
             if (property != null)
@@ -564,7 +583,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    protected void OnEndUnmortgage()
+    private void OnEndUnmortgage()
     {
         if (_activePlayer != this) return;
         
@@ -577,6 +596,42 @@ public class Player : MonoBehaviour
             {
                 property.HideOutline();
                 property.InUnmortgageSelection = false;
+            }
+        }
+    }
+
+    private void OnSellProperty()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideEndTurnPrompt();
+        UIManager.Instance.DisableMortgageButton();
+        UIManager.Instance.DisableUnmortgageButton();
+        UIManager.Instance.DisableSellPropertyButton();
+        
+        UIManager.Instance.ShowSellPropertyPanel();
+
+        var sellableProperties = GetSellableProperties();
+        foreach (var property in sellableProperties)
+        {
+            property.ShowOutline(Color.white, Color.blue);
+            property.InSellPropertySelection = true;
+        }
+    }
+
+    private void OnEndSellProperty()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideSellPropertyPanel();
+        CompleteTurn();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InSellPropertySelection = false;
             }
         }
     }
@@ -597,18 +652,115 @@ public class Player : MonoBehaviour
     /// <param name="amount">The amount of money to take from the player.</param>
     public void TakeMoney(int amount)
     {
-        var newMoney = Money - amount;
+        Money -= amount;
+        UIManager.Instance.AnimateMoney(_moneyText, Money);
+    }
+    
+    /// <summary>
+    /// Determines if the player can raise enough funds to avoid bankruptcy 
+    /// </summary>
+    private bool IsBankrupt()
+    {
+        var buildingFunds = TitleDeeds.OfType<Street>().Where(street => street != null).Sum(street => street.GetBuildingValue());
+        var propertyFunds = GetSellableProperties().Sum(property => property.Mortgaged ? property.MortgagedValue : property.Cost);
+        var totalFunds = buildingFunds + propertyFunds;
+        return totalFunds < -Money;
+    }
+    
+    // @cond
+    private void GoBankrupt()
+    {
+        StartCoroutine(GoBankruptCoroutine());
+    }
+    // @endcond
 
-        if (newMoney < 0)
+    /// <summary>
+    /// Returns all properties owned by the player to the bank and signals to the board to remove the player
+    /// </summary>
+    private IEnumerator GoBankruptCoroutine()
+    {
+        foreach (var property in TitleDeeds)
         {
-            // TODO deal with what to do when they go below zero, maybe return a bool to signal if take money is possible
-            Debug.Log("Mortgage or go bankrupt");
+            if (property != null)
+            {
+                Board.Instance.GiveTitleDeed(property);
+                TakeTitleDeed(property);
+                property.OwnedBy = null;
+            }
         }
-        else
+        
+        UIManager.Instance.ShowBankruptPopup();
+        yield return _bankruptPopupTime;
+        UIManager.Instance.HideBankruptPopup();
+        
+        Board.Instance.RemovePlayer();
+    }
+    
+    /// <summary>
+    /// Shows prompt to player or manually raises funds if bot
+    /// </summary>
+    protected virtual void RaiseFundsDecision()
+    {
+        if (CanMortgage())
         {
-            Money = newMoney;
-            UIManager.Instance.AnimateMoney(_moneyText, Money);
+            UIManager.Instance.EnableMortgageButton();
         }
+
+        if (CanSellProperty())
+        {
+            UIManager.Instance.EnableSellPropertyButton();
+        }
+        // TODO enable sell buildings button 
+    }
+    
+    protected List<Property> GetMortgageableProperties()
+    {
+        return TitleDeeds.Where(property => property != null && !property.Mortgaged).ToList();
+    }
+
+    protected List<Property> GetUnmortgageableProperties()
+    {
+        return TitleDeeds.Where(property => property != null && property.Mortgaged && Money >= property.UnmortgagedValue).ToList();
+    }
+
+    protected List<Property> GetSellableProperties()
+    {
+        var sellableProperties = new List<Property>();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                if (property is Street street)
+                {
+                    if (street.CurrentHouses == 0 && street.CurrentHotels == 0)
+                    {
+                        sellableProperties.Add(property);
+                    }
+                }
+                else
+                {
+                    sellableProperties.Add(property);
+                }
+            }
+        }
+
+        return sellableProperties;
+    }
+    
+    protected bool CanMortgage()
+    {
+        return GetMortgageableProperties().Count > 0;
+    }
+
+    private bool CanUnmortgage()
+    {
+        return GetUnmortgageableProperties().Count > 0;
+    }
+
+    protected bool CanSellProperty()
+    {
+        return GetSellableProperties().Count > 0;
     }
 
     /// <summary>
@@ -617,14 +769,26 @@ public class Player : MonoBehaviour
     /// <param name="actionCard">The Get Out Of Jail Free card to add.</param>
     public void AddGetOutOfJailFreeCard(ActionCard actionCard)
     {
-        _getOutOfJailFreeCards.Add(actionCard);
+        GetOutOfJailFreeCards.Add(actionCard);
         UpdateGetOutOfJailFreeCardNumber();
     }
 
     private void RemoveGetOutOfJailFreeCard(ActionCard actionCard)
     {
-        _getOutOfJailFreeCards.Remove(actionCard);
+        GetOutOfJailFreeCards.Remove(actionCard);
         UpdateGetOutOfJailFreeCardNumber();
+    }
+
+    private void GiveTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = property;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
+    }
+
+    public void TakeTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = null;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _infoPanel);
     }
     
     private void AssignButtonEventListeners()
@@ -647,6 +811,9 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.endMortgageButton.onClick.AddListener(OnEndMortgage);
         UIManager.Instance.endUnmortgageButton.onClick.AddListener(OnEndUnmortgage);
+        
+        UIManager.Instance.sellPropertyButton.onClick.AddListener(OnSellProperty);
+        UIManager.Instance.endSellPropertyButton.onClick.AddListener(OnEndSellProperty);
     }
     
     /// <summary>
@@ -671,7 +838,7 @@ public class Player : MonoBehaviour
 
     private void UpdateGetOutOfJailFreeCardNumber()
     {
-        _getOutOfJailFreeCardsText.SetText(_getOutOfJailFreeCards.Count.ToString());
+        _getOutOfJailFreeCardsText.SetText(GetOutOfJailFreeCards.Count.ToString());
     }
 
     /// <summary>

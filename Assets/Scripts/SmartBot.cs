@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using Tiles;
 using UnityEngine;
 
@@ -9,16 +8,13 @@ public class SmartBot : Player
     
     protected override void RollDiceDecision()
     {
-        // Bot can choose to 'click' roll dice, that is the only thing it can do here
         OnRollDice();
     }
 
     protected override void EndTurnDecision()
     {
-        // Bot can choose to 'click' end turn, or, at this point, it can choose the other options... auction, build, sell...
-        // bot should check it has enough funds before unmortgaging 
-        // TODO test mortgaging, call OnMortgage(), OnEndMortgage(), property.Mortgage()
-        OnEndTurn();
+        // ----------------------CODE GOES HERE----------------------
+        // Check Bot.cs for simple version
     }
 
     protected override void InJailDecision()
@@ -35,10 +31,7 @@ public class SmartBot : Player
         
         UIManager.Instance.HideBotDecisionDialog();
 
-        // Bot can either post bail, use card or stay in jail
-        // Bot should check if it has enough money or has enough getOutOfJailFreeCards first
-        
-        OnPostBail();
+        // ----------------------CODE GOES HERE----------------------
     }
     
     public override void ForSaleDecision(Property property)
@@ -55,10 +48,7 @@ public class SmartBot : Player
         
         UIManager.Instance.HideBotDecisionDialog();
         
-        // bot can choose to buy or auction
-        // Bot should check it has enough money first
-        
-        OnBuy();
+        // ----------------------CODE GOES HERE----------------------
     }
 
     public override void BidDecision()
@@ -77,12 +67,22 @@ public class SmartBot : Player
         
         UIManager.Instance.HideBotDecisionDialog();
         
-        // TODO this function should have access to the property, the current bid price, and the players in the bid,
-        // so bot can make a decision
-        // bot can chose to bid, big bid, or fold
-        // bot should check it can afford new bid price and also check if auctioning is possible (use Board.CanAuction...)
+        // ----------------------CODE GOES HERE----------------------
+    }
+    
+    protected override void RaiseFundsDecision()
+    {
+        UIManager.Instance.ShowBotDecisionDialog();
         
-        OnFold();
-        //OnBid();
+        StartCoroutine(RaiseFundsDecisionCoroutine());
+    }
+
+    private IEnumerator RaiseFundsDecisionCoroutine()
+    {
+        yield return _decisionMakingTime;
+        
+        UIManager.Instance.HideBotDecisionDialog();
+        
+        // ----------------------CODE GOES HERE----------------------
     }
 }

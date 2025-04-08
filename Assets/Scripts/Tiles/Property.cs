@@ -133,7 +133,7 @@ namespace Tiles
         /// <summary>
         /// Mortgages this property
         /// </summary>
-        private void Mortgage()
+        public void Mortgage()
         {
             Mortgaged = true;
             OwnedBy.GiveMoney(MortgagedValue);
@@ -154,6 +154,32 @@ namespace Tiles
             HideOutline();
             _mortgagedCard.SetActive(false);
             InUnmortgageSelection = false;
+            
+            // Once player clicks unmortgage, check the player can afford to unmortgage the other properties
+            foreach (var property in OwnedBy.TitleDeeds)
+            {
+                if (property != null && property.Mortgaged && OwnedBy.Money < property.UnmortgagedValue)
+                {
+                    property.HideOutline();
+                    property.InUnmortgageSelection = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sells this property to the bank
+        /// </summary>
+        public void SellProperty()
+        {
+            OwnedBy.GiveMoney(Mortgaged ? MortgagedValue : Cost);
+            
+            Board.Instance.GiveTitleDeed(this);
+            OwnedBy.TakeTitleDeed(this);
+
+            OwnedBy = null;
+            
+            HideOutline();
+            InSellPropertySelection = false;
         }
         
         private void OnMouseDown()
@@ -166,6 +192,11 @@ namespace Tiles
             if (InUnmortgageSelection)
             {
                 Unmortgage();
+            }
+
+            if (InSellPropertySelection)
+            {
+                SellProperty();
             }
         }
     }

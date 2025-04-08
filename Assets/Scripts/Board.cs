@@ -40,7 +40,7 @@ public class Board : Singleton<Board>
         }
     }
     
-    public Player[] Players { get; private set; }
+    public List<Player> Players { get; private set; }
     private Player _currentPlayer;
     private int _currentPlayerIndex;
 
@@ -48,7 +48,7 @@ public class Board : Singleton<Board>
     private Player _currentBidder;
     private int _currentBidderIndex;
     public int AuctionPrice { get; private set; }
-    public int BidAmount { get; private set; } = 20;
+    public int BidAmount => 20;
     private Property _auctionProperty;
     
     private readonly WaitForSeconds _timeBetweenTurns = new(1);
@@ -76,22 +76,25 @@ public class Board : Singleton<Board>
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
         
         // Manually assigning players for testing purposes, will get players from main menu later
-        // players will also become a list so they can be added and removed once a player declares bankruptcy 
-        Players = new Player[3];
+        Players = new List<Player>();
 
-        Players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
-        Players[0].SetSprite(tokens[0]);
-        Players[0].Name = tokens[0].name;
+        var pl1 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
+        pl1.SetSprite(tokens[0]);
+        pl1.Name = tokens[0].name;
         
-        Players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
-        Players[1].SetSprite(tokens[1]);
-        Players[1].Name = tokens[1].name;
+        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
+        pl2.SetSprite(tokens[1]);
+        pl2.Name = tokens[1].name;
         
-        Players[2] = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
-        Players[2].SetSprite(tokens[2]);
-        Players[2].Name = tokens[2].name;
+        var pl3 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
+        pl3.SetSprite(tokens[2]);
+        pl3.Name = tokens[2].name;
         
-        _currentPlayer = Players[_currentPlayerIndex % Players.Length];
+        Players.Add(pl1);
+        Players.Add(pl2);
+        Players.Add(pl3);
+        
+        _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
     }
 
@@ -109,9 +112,32 @@ public class Board : Singleton<Board>
     private IEnumerator StartNextTurn()
     {
         yield return _timeBetweenTurns;
-        _currentPlayerIndex++;
-        _currentPlayer = Players[_currentPlayerIndex % Players.Length];
+        _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
+        _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
+    }
+
+    /// <summary>
+    /// Removes the current player from the game because they went bankrupt and starts the next players turn
+    /// </summary>
+    public void RemovePlayer()
+    {
+        Players.Remove(_currentPlayer);
+        Destroy(_currentPlayer.gameObject);
+        if (_currentPlayerIndex == Players.Count)
+        {
+            _currentPlayerIndex = 0;
+        }
+        
+        if (Players.Count == 1)
+        {
+            UIManager.Instance.ShowWinnerPanel(Players[0]);
+        }
+        else
+        {
+            _currentPlayer = Players[_currentPlayerIndex];
+            _currentPlayer.StartTurn();
+        }
     }
     
     /// <summary>
@@ -120,20 +146,22 @@ public class Board : Singleton<Board>
     public void StartAuction(Property property)
     {
         _auctionProperty = property;
-        AuctionPrice = 20;
+        AuctionPrice = BidAmount;
         UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
         UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
 
         _bidders = new List<Player>();
         foreach (var player in Players)
         {
-            if (!player.InJail && player.PassedGo)
+            if (!player.InJail && player.PassedGo && player.Money >= BidAmount)
             {
                 _bidders.Add(player);
             }
         }
         
         _currentBidderIndex = _bidders.IndexOf(_currentPlayer);
+        if (_currentBidderIndex == -1)
+            _currentBidderIndex = 0;
         _currentBidder = _bidders[_currentBidderIndex];
         _currentBidder.BidDecision();
     }
@@ -202,14 +230,15 @@ public class Board : Singleton<Board>
     }
 
     /// <summary>
-    /// Returns true if at least 2 players have passed go and are out of jail
+    /// Returns true if at least 2 players have passed go and are out of jail and have the minimum amount to bid
     /// </summary>
     /// <returns>Whether or not auctioning is possible</returns>
     public bool CanAuction()
     {
         var passedGoCount = Players.Count(player => player.PassedGo);
         var outOfJailCount = Players.Count(player => !player.InJail);
-        return passedGoCount > 1 && outOfJailCount > 1;
+        var minimumToBid = Players.Count(player => player.Money >= BidAmount);
+        return passedGoCount > 1 && outOfJailCount > 1 && minimumToBid > 1;
     }
     
     public void GiveTitleDeed(Property property)

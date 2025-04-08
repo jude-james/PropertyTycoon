@@ -32,11 +32,15 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject inJailPanel;
     [SerializeField] private GameObject mortgagePanel;
     [SerializeField] private GameObject unmortgagePanel;
+    [SerializeField] private GameObject sellPropertyPanel;
+    [SerializeField] private GameObject winnerPanel;
     
     [Header("Game Popups")]
     [SerializeField] private GameObject goToJailPanel;
     [SerializeField] private GameObject payRentPanel;
+    [SerializeField] private GameObject bankruptPanel;
     [SerializeField] private GameObject botDecisionDialogPanel;
+    [SerializeField] private GameObject raiseFundsDialogPanel;
     
     [Header("Buttons")]
     public Button rollDiceButton;
@@ -57,6 +61,9 @@ public class UIManager : Singleton<UIManager>
 
     public Button endMortgageButton;
     public Button endUnmortgageButton;
+
+    public Button sellPropertyButton;
+    public Button endSellPropertyButton;
     
     private TMP_Text _rollDicePanelNameText;
     private Image _rollDicePanelImage;
@@ -74,6 +81,8 @@ public class UIManager : Singleton<UIManager>
     private Transform _auctionPanelCardPlaceholder;
     private Image _auctionPanelImage;
     private TMP_Text _auctionPanelPriceText;
+
+    private TMP_Text _bidButtonText;
     
     private TMP_Text _goToJailPanelNameText;
 
@@ -86,11 +95,21 @@ public class UIManager : Singleton<UIManager>
     private TMP_Text _payRentPanelOwnedByNameText;
     private Image _payRentPanelOwnedByImage;
 
+    private TMP_Text _bankruptPanelText;
+    private Image _bankruptPanelImage;
+    
     private TMP_Text _mortgagePanelNameText;
     private Image _mortgagePanelImage;
     
     private TMP_Text _unmortgagePanelNameText;
     private Image _unmortgagePanelImage;
+
+    private TMP_Text _sellPropertyPanelNameText;
+    private Image _sellPropertyPanelImage;
+    
+    private TMP_Text _winnerPanelNameText;
+    private TMP_Text _winnerPanelText;
+    private Image _winnerPanelImage;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
     private const float MoneyChangeDuration = 1.5f;
@@ -113,6 +132,8 @@ public class UIManager : Singleton<UIManager>
         _auctionPanelCardPlaceholder = auctionPanel.transform.GetChild(2).transform;
         _auctionPanelImage = auctionPanel.transform.GetChild(4).GetComponent<Image>();
         _auctionPanelPriceText = auctionPanel.transform.GetChild(6).GetComponent<TMP_Text>();
+
+        _bidButtonText = bidButton.GetComponentInChildren<TMP_Text>();
         
         _goToJailPanelNameText = goToJailPanel.transform.GetChild(0).GetComponent<TMP_Text>();
 
@@ -125,11 +146,21 @@ public class UIManager : Singleton<UIManager>
         _payRentPanelOwnedByNameText = payRentPanel.transform.GetChild(5).GetComponent<TMP_Text>();
         _payRentPanelOwnedByImage = payRentPanel.transform.GetChild(6).GetComponent<Image>();
 
+        _bankruptPanelText = bankruptPanel.transform.GetChild(2).GetComponent<TMP_Text>();
+        _bankruptPanelImage = bankruptPanel.transform.GetChild(1).GetComponent<Image>();
+        
         _mortgagePanelNameText = mortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _mortgagePanelImage = mortgagePanel.transform.GetChild(2).GetComponent<Image>();
         
         _unmortgagePanelNameText = unmortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _unmortgagePanelImage = unmortgagePanel.transform.GetChild(2).GetComponent<Image>();
+
+        _sellPropertyPanelNameText = sellPropertyPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _sellPropertyPanelImage = sellPropertyPanel.transform.GetChild(2).GetComponent<Image>();
+        
+        _winnerPanelNameText = winnerPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _winnerPanelImage = winnerPanel.transform.GetChild(2).GetComponent<Image>();
+        _winnerPanelText = winnerPanel.transform.GetChild(3).GetComponent<TMP_Text>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
@@ -188,8 +219,7 @@ public class UIManager : Singleton<UIManager>
 
     public void UpdateBidButtonAmount(int auctionPrice, int bidAmount)
     {
-        // TODO store Text variable
-        bidButton.GetComponentInChildren<TMP_Text>().SetText("BID £" + (auctionPrice + bidAmount) + "\n(+£" + bidAmount + ")");
+        _bidButtonText.SetText("BID £" + (auctionPrice + bidAmount) + "\n(+£" + bidAmount + ")");
     }
     
     public void ShowGoToJailPopup() => goToJailPanel.SetActive(true);
@@ -214,11 +244,17 @@ public class UIManager : Singleton<UIManager>
     }
     public void HidePayRentPopup() => payRentPanel.SetActive(false);
 
+    public void ShowBankruptPopup() => bankruptPanel.SetActive(true);
+    public void HideBankruptPopup() => bankruptPanel.SetActive(false);
+    
     public void ShowMortgagePanel() => mortgagePanel.SetActive(true);
     public void HideMortgagePanel() => mortgagePanel.SetActive(false);
     
     public void ShowUnmortgagePanel() => unmortgagePanel.SetActive(true);
     public void HideUnmortgagePanel() => unmortgagePanel.SetActive(false);
+    
+    public void ShowSellPropertyPanel() => sellPropertyPanel.SetActive(true);
+    public void HideSellPropertyPanel() => sellPropertyPanel.SetActive(false);
     
     public void EnableMortgageButton() => mortgageButton.interactable = true;
     public void DisableMortgageButton() => mortgageButton.interactable = false;
@@ -226,9 +262,24 @@ public class UIManager : Singleton<UIManager>
     public void EnableUnmortgageButton() => unmortgageButton.interactable = true;
     public void DisableUnmortgageButton() => unmortgageButton.interactable = false;
     
+    public void EnableSellPropertyButton() => sellPropertyButton.interactable = true;
+    public void DisableSellPropertyButton() => sellPropertyButton.interactable = false;
+    
     public void ShowBotDecisionDialog() => botDecisionDialogPanel.SetActive(true);
     public void HideBotDecisionDialog() => botDecisionDialogPanel.SetActive(false);
 
+    public void ShowRaiseFundsDialog() => raiseFundsDialogPanel.SetActive(true);
+    public void HideRaiseFundsDialog() => raiseFundsDialogPanel.SetActive(false);
+
+    public void ShowWinnerPanel(Player player)
+    {
+        _winnerPanelNameText.SetText(player.Name);
+        _winnerPanelText.SetText(player.Name + " has won the game!");
+        _winnerPanelImage.sprite = player.Sprite;
+        
+        winnerPanel.SetActive(true);
+    }
+    
     /// <summary>
     /// Returns the next available UI panel and makes it visible
     /// </summary>
@@ -261,11 +312,17 @@ public class UIManager : Singleton<UIManager>
         _payRentPanelPlayerNameText.SetText(name);
         _payRentPanelPlayerImage.sprite = sprite;
         
+        _bankruptPanelText.SetText(name + " has declared bankruptcy");
+        _bankruptPanelImage.sprite = sprite;
+        
         _mortgagePanelNameText.SetText(name);
         _mortgagePanelImage.sprite = sprite;
         
         _unmortgagePanelNameText.SetText(name);
         _unmortgagePanelImage.sprite = sprite;
+        
+        _sellPropertyPanelNameText.SetText(name);
+        _sellPropertyPanelImage.sprite = sprite;
     }
 
     /// <summary>

@@ -24,7 +24,6 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
-            // TODO override setCard so tax has a card, then show the card for X amount of seconds
             player.TakeMoney(_amount);
             player.CompleteTurn();
         }
