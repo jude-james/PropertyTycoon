@@ -26,7 +26,7 @@ public class Menu : MonoBehaviour
     private TMP_Dropdown tokenChoices;
     private bool error;
 
-    private List<MenuPlayer> initPlayers;
+    private static List<MenuPlayer> initPlayers;
 
     private void Start()
     {
@@ -165,6 +165,11 @@ public class Menu : MonoBehaviour
             SceneManager.LoadScene(1);
             // Scene will be loaded, then the board will retrieve the player data to create players
         }
+    }
+
+    public static List<MenuPlayer> GetMenuPlayers()
+    {
+        return initPlayers;
     }
 
     private void ExitGame()

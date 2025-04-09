@@ -42,9 +42,6 @@ public class Player : MonoBehaviour
     private bool _rolledADouble;
     private int _doubleCount;
     private const int DoubleLimit = 3;
-
-    public int Houses { get; private set; } 
-    public int Hotels { get; private set; }
     
     private Tile _currentTile;
     private int _currentTileIndex;
@@ -155,8 +152,8 @@ public class Player : MonoBehaviour
         }
         else
         {
-            ShiftTileIndex(DiceRoll);
-            //ShiftTileIndex(moveTest);
+            //ShiftTileIndex(DiceRoll);
+            ShiftTileIndex(moveTest);
             MoveToTile(Direction.Shortest);
         }
     }
@@ -310,6 +307,11 @@ public class Player : MonoBehaviour
         if (CanSellProperty())
         {
             UIManager.Instance.EnableSellPropertyButton();
+        }
+
+        if (CanBuild())
+        {
+            UIManager.Instance.EnableBuildButton();
         }
     }
     
@@ -528,13 +530,30 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideEndTurnPrompt();
         UIManager.Instance.DisableSideButtons();
         
-        UIManager.Instance.ShowMortgagePanel();
+        UIManager.Instance.ShowMortgagePrompt();
 
         var mortgageableProperties = GetMortgageableProperties();
         foreach (var property in mortgageableProperties)
         {
             property.ShowOutline(Color.white, Color.blue);
             property.InMortgageSelection = true;
+        }
+    }
+
+    private void OnEndMortgage()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideMortgagePrompt();
+        CompleteTurn();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InMortgageSelection = false;
+            }
         }
     }
 
@@ -548,7 +567,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideEndTurnPrompt();
         UIManager.Instance.DisableSideButtons();
         
-        UIManager.Instance.ShowUnmortgagePanel();
+        UIManager.Instance.ShowUnmortgagePrompt();
 
         var unmortgageableProperties = GetUnmortgageableProperties();
         foreach (var property in unmortgageableProperties)
@@ -558,28 +577,11 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void OnEndMortgage()
-    {
-        if (_activePlayer != this) return;
-        
-        UIManager.Instance.HideMortgagePanel();
-        CompleteTurn();
-        
-        foreach (var property in TitleDeeds)
-        {
-            if (property != null)
-            {
-                property.HideOutline();
-                property.InMortgageSelection = false;
-            }
-        }
-    }
-
     private void OnEndUnmortgage()
     {
         if (_activePlayer != this) return;
         
-        UIManager.Instance.HideUnmortgagePanel();
+        UIManager.Instance.HideUnmortgagePrompt();
         EndTurnDecision();
         
         foreach (var property in TitleDeeds)
@@ -599,7 +601,7 @@ public class Player : MonoBehaviour
         UIManager.Instance.HideEndTurnPrompt();
         UIManager.Instance.DisableSideButtons();
         
-        UIManager.Instance.ShowSellPropertyPanel();
+        UIManager.Instance.ShowSellPropertyPrompt();
 
         var sellableProperties = GetSellableProperties();
         foreach (var property in sellableProperties)
@@ -613,7 +615,7 @@ public class Player : MonoBehaviour
     {
         if (_activePlayer != this) return;
         
-        UIManager.Instance.HideSellPropertyPanel();
+        UIManager.Instance.HideSellPropertyPrompt();
         CompleteTurn();
         
         foreach (var property in TitleDeeds)
@@ -624,6 +626,50 @@ public class Player : MonoBehaviour
                 property.InSellPropertySelection = false;
             }
         }
+    }
+
+    private void OnBuild()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideEndTurnPrompt();
+        UIManager.Instance.DisableSideButtons();
+
+        UIManager.Instance.ShowBuildPrompt();
+        
+        var buildableProperties = GetBuildableProperties();
+        foreach (var property in buildableProperties)
+        {
+            property.ShowOutline(Color.white, Color.blue);
+            property.InBuildSelection = true;
+        }
+    }
+
+    private void OnEndBuild()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideBuildPrompt();
+        EndTurnDecision();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InBuildSelection = false;
+            }
+        }
+    }
+
+    public int TotalHouses()
+    {
+        return TitleDeeds.OfType<Street>().Sum(street => street.CurrentHouses);
+    }
+
+    public int TotalHotels()
+    {
+        return TitleDeeds.OfType<Street>().Sum(street => street.CurrentHotels);
     }
     
     /// <summary>
@@ -723,7 +769,7 @@ public class Player : MonoBehaviour
             {
                 if (property is Street street)
                 {
-                    if (street.CurrentHouses == 0 && street.CurrentHotels == 0)
+                    if (street.HasNoBuildings())
                     {
                         sellableProperties.Add(property);
                     }
@@ -736,6 +782,47 @@ public class Player : MonoBehaviour
         }
 
         return sellableProperties;
+    }
+
+    protected List<Property> GetBuildableProperties()
+    {
+        var buildableProperties = new List<Property>();
+        var propertySet = new List<Property>();
+        // TODO make enum?
+        string[] sets = { "Brown", "Blue", "Purple", "Orange", "Red", "Yellow", "Green", "DeepBlue" };
+        int count = 0;
+        
+        foreach (var set in sets)
+        {
+            foreach (var street in TitleDeeds.OfType<Street>())
+            {
+                if (street.Set == set)
+                {
+                    count++;
+                    if (!street.HasMaxBuildings() && Money >= street.HouseCost)
+                    {
+                        propertySet.Add(street);
+                    }
+                }
+            }
+
+            if (set is "Brown" or "DeepBlue")
+            {
+                if (count == 2)
+                {
+                    buildableProperties.AddRange(propertySet);
+                }
+            }
+            else if (count == 3)
+            {
+                buildableProperties.AddRange(propertySet);
+            }
+
+            count = 0;
+            propertySet = new List<Property>();
+        }
+        
+        return buildableProperties;
     }
     
     protected bool CanMortgage()
@@ -751,6 +838,11 @@ public class Player : MonoBehaviour
     protected bool CanSellProperty()
     {
         return GetSellableProperties().Count > 0;
+    }
+
+    protected bool CanBuild()
+    {
+        return GetBuildableProperties().Count > 0;
     }
 
     /// <summary>
@@ -804,6 +896,9 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.sellPropertyButton.onClick.AddListener(OnSellProperty);
         UIManager.Instance.endSellPropertyButton.onClick.AddListener(OnEndSellProperty);
+        
+        UIManager.Instance.buildButton.onClick.AddListener(OnBuild);
+        UIManager.Instance.endBuildButton.onClick.AddListener(OnEndBuild);
     }
     
     /// <summary>

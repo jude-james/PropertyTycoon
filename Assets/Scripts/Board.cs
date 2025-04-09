@@ -13,12 +13,11 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform boardTiles;
     [SerializeField] private Transform jailPosition;
     [SerializeField] private GameObject playerPrefab;
-    
+    [SerializeField] private Sprite[] tokens;
+
     private GameObject _bankInfoPanel;
     private TMP_Text _freeParkingSumText;
     
-    [SerializeField] private Sprite[] tokens; // TODO remove once menu is done
-
     public Vector2 JailPosition => jailPosition.position;
     
     public List<Tile> Tiles { get; private set; }
@@ -74,10 +73,23 @@ public class Board : Singleton<Board>
         
         _bankInfoPanel = UIManager.Instance.BankInfoPanel;
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
-        
-        // Manually assigning players for testing purposes, will get players from main menu later
-        Players = new List<Player>();
 
+        Players = new List<Player>();
+        
+        var menuPlayers = Menu.GetMenuPlayers();
+        foreach (var menuPlayer in menuPlayers)
+        {
+            var playerObj = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity);
+            var player = menuPlayer.isBot ? playerObj.AddComponent<Bot>() : playerObj.AddComponent<Player>();
+            
+            player.SetSprite(tokens[menuPlayer.token]);
+            player.Name = menuPlayer.name;
+            
+            Players.Add(player);
+        }
+        
+        // Manually assigning players for testing purposes
+        /*
         var pl1 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         pl1.SetSprite(tokens[0]);
         pl1.Name = tokens[0].name;
@@ -93,6 +105,7 @@ public class Board : Singleton<Board>
         Players.Add(pl1);
         Players.Add(pl2);
         Players.Add(pl3);
+        */
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
@@ -207,7 +220,7 @@ public class Board : Singleton<Board>
     }
 
     /// <summary>
-    /// Waits between each bid before enabling the buttons for the next bidder
+    /// Waits between each bid before updating and enabling the buttons for the next bidder
     /// </summary>
     private IEnumerator StartNextBid()
     {

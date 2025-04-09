@@ -33,6 +33,7 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject mortgagePanel;
     [SerializeField] private GameObject unmortgagePanel;
     [SerializeField] private GameObject sellPropertyPanel;
+    [SerializeField] private GameObject buildPanel;
     [SerializeField] private GameObject winnerPanel;
     
     [Header("Game Popups")]
@@ -57,13 +58,16 @@ public class UIManager : Singleton<UIManager>
     public Button remainInJailButton;
 
     public Button mortgageButton;
-    public Button unmortgageButton;
-
     public Button endMortgageButton;
+
+    public Button unmortgageButton;
     public Button endUnmortgageButton;
 
     public Button sellPropertyButton;
     public Button endSellPropertyButton;
+
+    public Button buildButton;
+    public Button endBuildButton;
     
     private TMP_Text _rollDicePanelNameText;
     private Image _rollDicePanelImage;
@@ -103,6 +107,9 @@ public class UIManager : Singleton<UIManager>
     
     private TMP_Text _unmortgagePanelNameText;
     private Image _unmortgagePanelImage;
+    
+    private TMP_Text _buildPanelNameText;
+    private Image _buildPanelImage;
 
     private TMP_Text _sellPropertyPanelNameText;
     private Image _sellPropertyPanelImage;
@@ -155,6 +162,9 @@ public class UIManager : Singleton<UIManager>
         _unmortgagePanelNameText = unmortgagePanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _unmortgagePanelImage = unmortgagePanel.transform.GetChild(2).GetComponent<Image>();
 
+        _buildPanelNameText = buildPanel.transform.GetChild(1).GetComponent<TMP_Text>();
+        _buildPanelImage = buildPanel.transform.GetChild(2).GetComponent<Image>();
+        
         _sellPropertyPanelNameText = sellPropertyPanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _sellPropertyPanelImage = sellPropertyPanel.transform.GetChild(2).GetComponent<Image>();
         
@@ -247,14 +257,14 @@ public class UIManager : Singleton<UIManager>
     public void ShowBankruptPopup() => bankruptPanel.SetActive(true);
     public void HideBankruptPopup() => bankruptPanel.SetActive(false);
     
-    public void ShowMortgagePanel() => mortgagePanel.SetActive(true);
-    public void HideMortgagePanel() => mortgagePanel.SetActive(false);
+    public void ShowMortgagePrompt() => mortgagePanel.SetActive(true);
+    public void HideMortgagePrompt() => mortgagePanel.SetActive(false);
     
-    public void ShowUnmortgagePanel() => unmortgagePanel.SetActive(true);
-    public void HideUnmortgagePanel() => unmortgagePanel.SetActive(false);
+    public void ShowUnmortgagePrompt() => unmortgagePanel.SetActive(true);
+    public void HideUnmortgagePrompt() => unmortgagePanel.SetActive(false);
     
-    public void ShowSellPropertyPanel() => sellPropertyPanel.SetActive(true);
-    public void HideSellPropertyPanel() => sellPropertyPanel.SetActive(false);
+    public void ShowSellPropertyPrompt() => sellPropertyPanel.SetActive(true);
+    public void HideSellPropertyPrompt() => sellPropertyPanel.SetActive(false);
     
     public void EnableMortgageButton() => mortgageButton.interactable = true;
     public void DisableMortgageButton() => mortgageButton.interactable = false;
@@ -264,6 +274,12 @@ public class UIManager : Singleton<UIManager>
     
     public void EnableSellPropertyButton() => sellPropertyButton.interactable = true;
     public void DisableSellPropertyButton() => sellPropertyButton.interactable = false;
+
+    public void ShowBuildPrompt() => buildPanel.SetActive(true);
+    public void HideBuildPrompt() => buildPanel.SetActive(false);
+    
+    public void EnableBuildButton() => buildButton.interactable = true;
+    public void DisableBuildButton() => buildButton.interactable = false;
     
     public void ShowBotDecisionDialog() => botDecisionDialogPanel.SetActive(true);
     public void HideBotDecisionDialog() => botDecisionDialogPanel.SetActive(false);
@@ -285,7 +301,8 @@ public class UIManager : Singleton<UIManager>
         DisableMortgageButton();
         DisableUnmortgageButton();
         DisableSellPropertyButton();
-        // TODO disable build and sell buildings buttons
+        DisableBuildButton();
+        // TODO disable sell buildings buttons
     }
     
     /// <summary>
@@ -328,6 +345,9 @@ public class UIManager : Singleton<UIManager>
         
         _unmortgagePanelNameText.SetText(name);
         _unmortgagePanelImage.sprite = sprite;
+        
+        _buildPanelNameText.SetText(name);
+        _buildPanelImage.sprite = sprite;
         
         _sellPropertyPanelNameText.SetText(name);
         _sellPropertyPanelImage.sprite = sprite;

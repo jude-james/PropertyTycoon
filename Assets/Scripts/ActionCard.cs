@@ -53,8 +53,8 @@ public class ActionCard
                 break;
             
             case ActionType.TakeBuildingMoney:
-                player.TakeMoney(_houseRepairAmount * player.Houses);
-                player.TakeMoney(_hotelRepairAmount * player.Hotels);
+                player.TakeMoney(_houseRepairAmount * player.TotalHouses());
+                player.TakeMoney(_hotelRepairAmount * player.TotalHotels());
                 player.CompleteTurn();
                 break;
             

@@ -1,6 +1,6 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Tiles
 {
@@ -9,31 +9,50 @@ namespace Tiles
     /// </summary>
     public class Street : Property
     {
-        private string _set;
+        public string Set { get; private set; }
         private int _initialRent;
         private int _rentWithColourSet;
         private int[] _improvedRent;
-        private int _houseCost;
-        private int _hotelCost;
+        public int HouseCost { get; private set; }
+        public int HotelCost { get; private set; }
 
         public int CurrentHouses { get; private set; }
         public int CurrentHotels { get; private set; }
+
+        private GameObject[] _houseSprites;
+        private GameObject _hotelSprite;
         
         public void SetUp(string name, int cost, int propertyNumber, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
         {
-            _set = set;
+            Set = set;
             _initialRent = initialRent;
             _rentWithColourSet = rentWithColourSet;
             _improvedRent = improvedRent;
-            _houseCost = houseCost;
-            _hotelCost = hotelCost;
+            HouseCost = houseCost;
+            HotelCost = hotelCost;
             CurrentRent = _initialRent;
+            GetBuildingSprites();
             base.SetUp(name, cost, propertyNumber);
         }
 
+        /// <summary>
+        /// Gets the house and hotel sprites on this tile
+        /// </summary>
+        private void GetBuildingSprites()
+        {
+            _houseSprites = new GameObject[4];
+            
+            for (var i = 0; i < _houseSprites.Length; i++)
+            {
+                _houseSprites[i] = transform.GetChild(2 + i).gameObject;
+            }
+
+            _hotelSprite = transform.GetChild(6).gameObject;
+        }
+        
         protected override void SetCard()
         {
-            Card = Instantiate(Resources.Load("Prefabs/Cards/" + _set)) as GameObject;
+            Card = Instantiate(Resources.Load("Prefabs/Cards/" + Set)) as GameObject;
             if (Card != null)
             {
                 var cardSprite = Card.transform.GetChild(0);
@@ -44,11 +63,11 @@ namespace Tiles
                 {
                     cardSprite.GetChild(3 + i).GetComponent<TMP_Text>().SetText("£"+_improvedRent[i]);
                 }
-                cardSprite.GetChild(8).GetComponent<TMP_Text>().SetText("£"+_houseCost + " each");
-                cardSprite.GetChild(9).GetComponent<TMP_Text>().SetText("£"+_hotelCost + " each");
+                cardSprite.GetChild(8).GetComponent<TMP_Text>().SetText("£"+HouseCost + " each");
+                cardSprite.GetChild(9).GetComponent<TMP_Text>().SetText("£"+HotelCost + " each");
             }
         }
-
+        
         protected override void PayRent(Player player)
         {
             // TODO figure out rent based on houses, hotels and if OwnedBy owns the set
@@ -59,11 +78,72 @@ namespace Tiles
         }
 
         /// <summary>
+        /// Builds a house or hotel on this street
+        /// </summary>
+        public void Build()
+        {
+            if (CurrentHouses < 4)
+            {
+                CurrentHouses++;
+                for (var i = 0; i < CurrentHouses; i++)
+                {
+                    _houseSprites[i].SetActive(true);
+                }
+                OwnedBy.TakeMoney(HouseCost);
+            }
+            else
+            {
+                CurrentHotels++;
+                for (var i = 0; i < _houseSprites.Length; i++)
+                {
+                    _houseSprites[i].SetActive(false);
+                }
+                _hotelSprite.SetActive(true);
+                OwnedBy.TakeMoney(HotelCost);
+                
+                HideOutline();
+                InBuildSelection = false;
+            }
+            
+            // Once player builds a house, check they have enough money to build other houses
+            foreach (var street in OwnedBy.TitleDeeds.OfType<Street>())
+            {
+                if (OwnedBy.Money < street.HouseCost)
+                {
+                    street.HideOutline();
+                    street.InBuildSelection = false;
+                }
+            }
+            
+            // TODO update selection if difference is more than 1...
+        }
+        
+        /// <summary>
         /// Gets the value of all houses and hotels on this street
         /// </summary>
         public int GetBuildingValue()
         {
-            return CurrentHouses * _houseCost + CurrentHotels * _hotelCost;
+            return CurrentHouses * HouseCost + CurrentHotels * HotelCost;
+        }
+
+        public bool HasMaxBuildings()
+        {
+            return CurrentHotels > 0;
+        }
+
+        public bool HasNoBuildings()
+        {
+            return CurrentHouses == 0 && CurrentHotels == 0;
+        }
+
+        protected override void OnMouseDown()
+        {
+            base.OnMouseDown();
+            
+            if (InBuildSelection)
+            {
+                Build();
+            }
         }
     }
 }

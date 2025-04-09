@@ -182,7 +182,7 @@ namespace Tiles
             InSellPropertySelection = false;
         }
         
-        private void OnMouseDown()
+        protected virtual void OnMouseDown()
         {
             if (InMortgageSelection)
             {
