@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -14,17 +12,25 @@ public class Menu : MonoBehaviour
     [SerializeField] private GameObject mainMenu;
 
     [SerializeField] private Sprite humanImage;
-    [SerializeField] private Sprite botImage;
+    [SerializeField] private Sprite EasyBotImage;
+    [SerializeField] private Sprite SmartBotImage;
     [SerializeField] private Sprite empty;
     [SerializeField] private Button[] playerDisplay;
 
     [SerializeField] private TextMeshProUGUI message;
-    [SerializeField] private Button start, exit, startGame, addHuman, addBot;
+    [SerializeField] private Slider timeSlider;
+    [SerializeField] private GameObject timeMenu;
+    [SerializeField] private Button start, exit, startGame, addHuman, addBot, fullGame, timedGame;
+    [SerializeField] private Toggle smartBotsToggle;
     [SerializeField] private TMP_InputField inputName;
 
     [SerializeField] private GameObject tokenChoicesObject;
     private TMP_Dropdown tokenChoices;
     private bool error;
+    private bool timed;
+    private float time;
+
+    public bool smartBots { get; private set; }
 
     private static List<MenuPlayer> initPlayers;
 
@@ -37,6 +43,8 @@ public class Menu : MonoBehaviour
         tokenChoices = tokenChoicesObject.GetComponent<TMP_Dropdown>();
         start.onClick.AddListener(ChangeMenu);
         exit.onClick.AddListener(ExitGame);
+        fullGame.onClick.AddListener(() => ChangeGameType(false));
+        timedGame.onClick.AddListener(() => ChangeGameType(true));
         startGame.onClick.AddListener(StartGame);
         addHuman.onClick.AddListener(() => Add(false));
         addBot.onClick.AddListener(() => Add(true));
@@ -49,6 +57,7 @@ public class Menu : MonoBehaviour
         playerDisplay[5].onClick.AddListener(() => Remove(5));
 
         message.text = "Add players and then press start";
+        timed = false;
     }
 
     private void DisplayPlayers()
@@ -58,9 +67,12 @@ public class Menu : MonoBehaviour
         while (i < initPlayers.Count)
         {
             playerDisplay[i].GetComponent<Button>().interactable = true;
-            if (initPlayers[i].isBot)
+            if (initPlayers[i].isBot && initPlayers[i].isSmart)
             {
-                playerDisplay[i].GetComponent<Image>().sprite = botImage;
+                playerDisplay[i].GetComponent<Image>().sprite = SmartBotImage;
+            }
+            else if(initPlayers[i].isBot){
+                playerDisplay[i].GetComponent<Image>().sprite = EasyBotImage;
             }
             else
             {
@@ -110,7 +122,7 @@ public class Menu : MonoBehaviour
         if (!error)
         {
             message.text = inputName.text + " added - Click player to remove";
-            initPlayers.Add(new MenuPlayer(inputName.text, tokenChoices.value, isBot));
+            initPlayers.Add(new MenuPlayer(inputName.text, tokenChoices.value, isBot,smartBotsToggle.isOn));
             DisplayPlayers();
         }
     }
@@ -126,6 +138,24 @@ public class Menu : MonoBehaviour
     {
         playerMenu.SetActive(true);
         mainMenu.SetActive(false);
+    }
+
+    private void ChangeGameType(bool timedGamePressed)
+    {
+        timed = timedGamePressed;
+
+        // Shows time slider, moves start button and toggle
+        timeMenu.SetActive(timed);
+        if (timed == true)
+        {
+            startGame.gameObject.transform.localPosition = new Vector3(90, -75, 0);
+            smartBotsToggle.gameObject.transform.localPosition = new Vector3(110, -47.5f, 0);
+        }
+        else
+        {
+            startGame.gameObject.transform.localPosition = new Vector3(0, -75, 0);
+            smartBotsToggle.gameObject.transform.localPosition = new Vector3(20, -47.5f, 0);
+        }
     }
 
     private void StartGame()
@@ -148,10 +178,10 @@ public class Menu : MonoBehaviour
                     count--;
                 }
             }
-            if (count * Mathf.Sign(count) == initPlayers.Count)
+            if (count == initPlayers.Count)
             {
                 error = true;
-                message.text = "There must be at least one human and one bot";
+                message.text = "There must be at least one human";
             }
         }
         else
@@ -164,6 +194,14 @@ public class Menu : MonoBehaviour
         {
             SceneManager.LoadScene(1);
             // Scene will be loaded, then the board will retrieve the player data to create players
+
+            // Gets time from time slider
+            time = timeSlider.value;
+
+            // Gets whether bots are smart or not from the toggle
+            smartBots = smartBotsToggle.isOn;
+
+            Debug.Log(smartBots);
         }
     }
 
@@ -175,6 +213,19 @@ public class Menu : MonoBehaviour
     private void ExitGame()
     {
         Application.Quit();
+    }
+
+    public float GetTime()
+    {
+        if (timed)
+        {
+            return time;
+        }
+        else
+        {
+            return 0;
+            // 0 means infinite
+        }
     }
 }
 /// @endcond

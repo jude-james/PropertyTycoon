@@ -48,7 +48,7 @@ public class Board : Singleton<Board>
     private int _currentBidderIndex;
     public int AuctionPrice { get; private set; }
     public int BidAmount => 20;
-    private Property _auctionProperty;
+    public Property _auctionProperty;
     
     private readonly WaitForSeconds _timeBetweenTurns = new(1);
     private readonly WaitForSeconds _timeBetweenBids = new(0.5f);

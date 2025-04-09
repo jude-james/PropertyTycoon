@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
     public Property[] TitleDeeds { get; private set; }
     
     public bool InJail { get; private set; }
-    private int _roundsInJail;
+    public int _roundsInJail;
     private const int RoundsInJailLimit = 2;
     protected const int PostBailAmount = 50;
     protected List<ActionCard> GetOutOfJailFreeCards;
@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
     private readonly WaitForSeconds _jailPopupTime = new(1.5f);
     private readonly WaitForSeconds _bankruptPopupTime = new(3f);
     
-    private void Start()
+    public void Start()
     {
         _animator = GetComponent<Animator>();
 
