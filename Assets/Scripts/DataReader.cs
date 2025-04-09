@@ -68,7 +68,9 @@ public class DataReader
                     {
                         case "Street":
                         {
-                            var set = boardDataMatrix[i+startCol][setRow];
+                            var setStr = boardDataMatrix[i+startCol][setRow];
+                            Enum.TryParse(setStr, out Set set);
+
                             var initialRent = int.Parse(boardDataMatrix[i+startCol][initialRentRow]);
                             var rentWithColourSet = initialRent * 2;
                     

@@ -16,6 +16,7 @@ namespace Tiles
         public bool InUnmortgageSelection { get; set; }
         public bool InSellPropertySelection { get; set; }
         public bool InBuildSelection { get; set; }
+        public bool InSellBuildingsSelection { get; set; }
         
         private BoxCollider2D _boxCollider;
         private LineRenderer _lineRenderer;
@@ -131,7 +132,7 @@ namespace Tiles
 
         private bool InSelection()
         {
-            return InMortgageSelection || InUnmortgageSelection || InSellPropertySelection || InBuildSelection;
+            return InMortgageSelection || InUnmortgageSelection || InSellPropertySelection || InBuildSelection || InSellBuildingsSelection;
         }
         
         protected virtual void OnMouseEnter()

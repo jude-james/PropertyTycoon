@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -9,7 +10,8 @@ namespace Tiles
     /// </summary>
     public class Street : Property
     {
-        public string Set { get; private set; }
+        // public string Set { get; private set; }
+        public Set Set { get; private set; }
         private int _initialRent;
         private int _rentWithColourSet;
         private int[] _improvedRent;
@@ -22,7 +24,7 @@ namespace Tiles
         private GameObject[] _houseSprites;
         private GameObject _hotelSprite;
         
-        public void SetUp(string name, int cost, int propertyNumber, string set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
+        public void SetUp(string name, int cost, int propertyNumber, Set set, int initialRent, int rentWithColourSet, int[] improvedRent, int houseCost, int hotelCost)
         {
             Set = set;
             _initialRent = initialRent;
@@ -70,7 +72,37 @@ namespace Tiles
         
         protected override void PayRent(Player player)
         {
-            // TODO figure out rent based on houses, hotels and if OwnedBy owns the set
+            if (HasNoBuildings())
+            {
+                var count = OwnedBy.TitleDeeds.OfType<Street>().Count(street => street.Set == Set);
+                if (Set is Set.Brown or Set.DeepBlue)
+                {
+                    if (count == 2)
+                    {
+                        CurrentRent = _rentWithColourSet;
+                    }
+                }
+                else if (count == 3)
+                {
+                    CurrentRent = _rentWithColourSet;
+                }
+                else
+                {
+                    CurrentRent = _initialRent;
+                }
+            }
+            else
+            {
+                if (HasMaxBuildings())
+                {
+                    CurrentRent = _improvedRent[4];
+                }
+                else
+                {
+                    CurrentRent = _improvedRent[CurrentHouses - 1];
+                }
+            }
+            
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
             
@@ -117,6 +149,40 @@ namespace Tiles
             
             // TODO update selection if difference is more than 1...
         }
+
+        /// <summary>
+        /// Sells a house or hotel on this street back to the bank
+        /// </summary>
+        public void SellBuildings()
+        {
+            if (HasMaxBuildings())
+            {
+                CurrentHotels--;
+                for (var i = 0; i < _houseSprites.Length; i++)
+                {
+                    _houseSprites[i].SetActive(true);
+                }
+                _hotelSprite.SetActive(false);
+                
+                OwnedBy.GiveMoney(HotelCost);
+            }
+            else if (CurrentHouses > 0)
+            {
+                CurrentHouses--;
+                for (var i = 3; i >= CurrentHouses; i--)
+                {
+                    _houseSprites[i].SetActive(false);
+                }
+                
+                OwnedBy.GiveMoney(HouseCost);
+
+                if (CurrentHouses == 0)
+                {
+                    HideOutline();
+                    InSellBuildingsSelection = false;
+                }
+            }
+        }
         
         /// <summary>
         /// Gets the value of all houses and hotels on this street
@@ -143,6 +209,11 @@ namespace Tiles
             if (InBuildSelection)
             {
                 Build();
+            }
+
+            if (InSellBuildingsSelection)
+            {
+                SellBuildings();
             }
         }
     }

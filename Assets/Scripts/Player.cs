@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -312,6 +313,11 @@ public class Player : MonoBehaviour
         if (CanBuild())
         {
             UIManager.Instance.EnableBuildButton();
+        }
+
+        if (CanSellBuildings())
+        {
+            UIManager.Instance.EnableSellBuildingsButton();
         }
     }
     
@@ -662,6 +668,41 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void OnSellBuildings()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideEndTurnPrompt();
+        UIManager.Instance.DisableSideButtons();
+
+        UIManager.Instance.ShowSellBuildingsPrompt();
+        
+        var unbuildableProperties = GetUnbuildableProperties();
+        foreach (var property in unbuildableProperties)
+        {
+            property.ShowOutline(Color.white, Color.blue);
+            property.InSellBuildingsSelection = true;        
+        }
+    }
+
+    private void OnEndSellBuildings()
+    {
+        if (_activePlayer != this) return;
+        
+        UIManager.Instance.HideSellBuildingsPrompt();
+        CompleteTurn();
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property != null)
+            {
+                property.HideOutline();
+                property.InSellBuildingsSelection = false;
+            }
+        }
+        
+    }
+
     public int TotalHouses()
     {
         return TitleDeeds.OfType<Street>().Sum(street => street.CurrentHouses);
@@ -746,7 +787,11 @@ public class Player : MonoBehaviour
         {
             UIManager.Instance.EnableSellPropertyButton();
         }
-        // TODO enable sell buildings button 
+
+        if (CanSellBuildings())
+        {
+            UIManager.Instance.EnableSellBuildingsButton();
+        }
     }
     
     protected List<Property> GetMortgageableProperties()
@@ -789,9 +834,10 @@ public class Player : MonoBehaviour
         var buildableProperties = new List<Property>();
         var propertySet = new List<Property>();
         // TODO make enum?
-        string[] sets = { "Brown", "Blue", "Purple", "Orange", "Red", "Yellow", "Green", "DeepBlue" };
+        //string[] sets = { "Brown", "Blue", "Purple", "Orange", "Red", "Yellow", "Green", "DeepBlue" };
         int count = 0;
-        
+
+        var sets = Enum.GetValues(typeof(Set)).Cast<Set>();
         foreach (var set in sets)
         {
             foreach (var street in TitleDeeds.OfType<Street>())
@@ -806,7 +852,7 @@ public class Player : MonoBehaviour
                 }
             }
 
-            if (set is "Brown" or "DeepBlue")
+            if (set is Set.Brown or Set.DeepBlue)
             {
                 if (count == 2)
                 {
@@ -823,6 +869,21 @@ public class Player : MonoBehaviour
         }
         
         return buildableProperties;
+    }
+
+    protected List<Property> GetUnbuildableProperties()
+    {
+        var unbuildableProperties = new List<Property>();
+        
+        foreach (var street in TitleDeeds.OfType<Street>())
+        {
+            if (!street.HasNoBuildings())
+            {
+                unbuildableProperties.Add(street);
+            }
+        }
+
+        return unbuildableProperties;
     }
     
     protected bool CanMortgage()
@@ -843,6 +904,11 @@ public class Player : MonoBehaviour
     protected bool CanBuild()
     {
         return GetBuildableProperties().Count > 0;
+    }
+
+    protected bool CanSellBuildings()
+    {
+        return GetUnbuildableProperties().Count > 0;
     }
 
     /// <summary>
@@ -899,6 +965,9 @@ public class Player : MonoBehaviour
         
         UIManager.Instance.buildButton.onClick.AddListener(OnBuild);
         UIManager.Instance.endBuildButton.onClick.AddListener(OnEndBuild);
+        
+        UIManager.Instance.sellBuildingsButton.onClick.AddListener(OnSellBuildings);
+        UIManager.Instance.endSellBuildingsButton.onClick.AddListener(OnEndSellBuildings);
     }
     
     /// <summary>
