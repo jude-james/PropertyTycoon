@@ -130,8 +130,8 @@ public class Bot : Player
         
         if (CanSellBuildings())
         {
-            var unbuildableProperties = GetUnbuildableProperties();
-            foreach (var street in unbuildableProperties)
+            var sellableBuildingProperties = GetSellableBuildingProperties();
+            foreach (var street in sellableBuildingProperties)
             {
                 street.SellBuilding();
                 if (Money >= 0)

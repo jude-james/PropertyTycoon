@@ -501,7 +501,7 @@ public class Player : MonoBehaviour
     {
         if (CurrentBidder != this) return;
         
-        Board.Instance.EndBid(false, Board.Instance.BidAmount);
+        Board.Instance.EndBid(false);
     }
 
     protected void OnFold()
@@ -677,7 +677,7 @@ public class Player : MonoBehaviour
 
         UIManager.Instance.ShowSellBuildingsPrompt();
         
-        var unbuildableProperties = GetUnbuildableProperties();
+        var unbuildableProperties = GetSellableBuildingProperties();
         foreach (var property in unbuildableProperties)
         {
             property.ShowOutline(Color.white, Color.blue);
@@ -705,7 +705,7 @@ public class Player : MonoBehaviour
 
     public int TotalHouses()
     {
-        return TitleDeeds.OfType<Street>().Sum(street => street.CurrentHouses);
+        return TitleDeeds.OfType<Street>().Where(street => !street.HasMaxBuildings()).Sum(street => street.CurrentHouses);
     }
 
     public int TotalHotels()
@@ -829,10 +829,10 @@ public class Player : MonoBehaviour
         return sellableProperties;
     }
 
-    protected List<Property> GetBuildableProperties()
+    protected List<Street> GetBuildableProperties()
     {
-        var buildableProperties = new List<Property>();
-        var propertySet = new List<Property>();
+        var buildableProperties = new List<Street>();
+        var propertySet = new List<Street>();
         
         var count = 0;
         var sets = Enum.GetValues(typeof(Set)).Cast<Set>();
@@ -863,13 +863,13 @@ public class Player : MonoBehaviour
             }
 
             count = 0;
-            propertySet = new List<Property>();
+            propertySet = new List<Street>();
         }
         
         return buildableProperties;
     }
 
-    protected List<Street> GetUnbuildableProperties()
+    protected List<Street> GetSellableBuildingProperties()
     {
         return TitleDeeds.OfType<Street>().Where(street => !street.HasNoBuildings()).ToList();
     }
@@ -896,7 +896,7 @@ public class Player : MonoBehaviour
 
     protected bool CanSellBuildings()
     {
-        return GetUnbuildableProperties().Count > 0;
+        return GetSellableBuildingProperties().Count > 0;
     }
 
     /// <summary>

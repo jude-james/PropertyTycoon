@@ -195,12 +195,9 @@ public class Board : Singleton<Board>
     /// or updating the auction price if they chose to bid
     /// </summary>
     /// <param name="folded">Indicates if the player chose to fold or not</param>
-    /// <param name="amount">The amount the player chose to bid</param>
-    public void EndBid(bool folded, int amount = 0)
+    public void EndBid(bool folded)
     {
         UIManager.Instance.DisableAuctionButtons();
-        
-        AuctionPrice += amount;
         
         if (folded)
         {
@@ -212,6 +209,7 @@ public class Board : Singleton<Board>
         }
         else
         {
+            AuctionPrice += BidAmount;
             _currentBidderIndex = (_currentBidderIndex + 1) % _bidders.Count;
         }
         
