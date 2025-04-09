@@ -1079,8 +1079,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerMenu: {fileID: 991108273}
   mainMenu: {fileID: 928586027}
-  humanImage: {fileID: 21300000, guid: 1a06ca2f372691c42935f1a9359fbaeb, type: 3}
-  botImage: {fileID: 21300000, guid: 932617e353feea34a96ff1cfbd2936e4, type: 3}
+  humanImage: {fileID: 21300000, guid: d3d05abb8a72cc94380a83595da09c45, type: 3}
+  EasyBotImage: {fileID: 21300000, guid: 284c81e89e7cd304898b15c0e98c757e, type: 3}
+  SmartBotImage: {fileID: 21300000, guid: 434b439d8117bec4f8bf958a7fb0c651, type: 3}
   empty: {fileID: 21300000, guid: 1f81021badd21fd4c8652bb36eac39d6, type: 3}
   playerDisplay:
   - {fileID: 1919581021}

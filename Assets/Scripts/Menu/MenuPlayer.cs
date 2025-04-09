@@ -15,6 +15,7 @@ public class MenuPlayer
     /// Indicates if the player is a bot.
     /// </summary>
     public bool isBot { get; private set; }
+    public bool isSmart { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuPlayer"/> class.
@@ -22,10 +23,12 @@ public class MenuPlayer
     /// <param name="name">The name of the player.</param>
     /// <param name="token">The token of the player.</param>
     /// <param name="isBot">Indicates if the player is a bot.</param>
-    public MenuPlayer(string name, int token, bool isBot)
+    /// <param name="isSmart">Indicates if the bot uses the smart class</param>
+    public MenuPlayer(string name, int token, bool isBot,bool isSmart)
     {
         this.name = name;
         this.token = token;
         this.isBot = isBot;
+        this.isSmart = isSmart;
     }
 }

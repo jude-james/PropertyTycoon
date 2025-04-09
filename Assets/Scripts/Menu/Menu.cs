@@ -12,7 +12,8 @@ public class Menu : MonoBehaviour
     [SerializeField] private GameObject mainMenu;
 
     [SerializeField] private Sprite humanImage;
-    [SerializeField] private Sprite botImage;
+    [SerializeField] private Sprite EasyBotImage;
+    [SerializeField] private Sprite SmartBotImage;
     [SerializeField] private Sprite empty;
     [SerializeField] private Button[] playerDisplay;
 
@@ -66,9 +67,12 @@ public class Menu : MonoBehaviour
         while (i < initPlayers.Count)
         {
             playerDisplay[i].GetComponent<Button>().interactable = true;
-            if (initPlayers[i].isBot)
+            if (initPlayers[i].isBot && initPlayers[i].isSmart)
             {
-                playerDisplay[i].GetComponent<Image>().sprite = botImage;
+                playerDisplay[i].GetComponent<Image>().sprite = SmartBotImage;
+            }
+            else if(initPlayers[i].isBot){
+                playerDisplay[i].GetComponent<Image>().sprite = EasyBotImage;
             }
             else
             {
@@ -118,7 +122,7 @@ public class Menu : MonoBehaviour
         if (!error)
         {
             message.text = inputName.text + " added - Click player to remove";
-            initPlayers.Add(new MenuPlayer(inputName.text, tokenChoices.value, isBot));
+            initPlayers.Add(new MenuPlayer(inputName.text, tokenChoices.value, isBot,smartBotsToggle.isOn));
             DisplayPlayers();
         }
     }
@@ -174,10 +178,10 @@ public class Menu : MonoBehaviour
                     count--;
                 }
             }
-            if (count * Mathf.Sign(count) == initPlayers.Count)
+            if (count == initPlayers.Count)
             {
                 error = true;
-                message.text = "There must be at least one human and one bot";
+                message.text = "There must be at least one human";
             }
         }
         else
