@@ -43,7 +43,7 @@ public class Bot : Player
         // Bot can choose to post bail, use card or stay in jail
         
         // In this simple version, the bot will try and use its card first, then try and pay 50, then finally remain in jail
-        if (GetOutOfJailFreeCards.Count > 0) // <- Make sure bot checks it can do things, or game breaks without if statements
+        if (GetOutOfJailFreeCards.Count > 0)
         {
             OnGetOutOfJailFree();
         }
@@ -102,9 +102,10 @@ public class Bot : Player
         
         // Bot can chose to bid or fold
         
-        // In this simple version the bot will always bid if it can
+        // In this simple version the bot will always bid if it can, until it reaches the property price
+        var propertyPrice = Board.Instance.AuctionProperty.Cost;
         var canBid = Money >= Board.Instance.AuctionPrice + Board.Instance.BidAmount;
-        if (canBid)
+        if (canBid && Board.Instance.AuctionPrice <= propertyPrice)
         {
             OnBid();
         }
@@ -127,11 +128,19 @@ public class Bot : Player
         
         UIManager.Instance.HideBotDecisionDialog();
         
-        // Bot must raise funds when this function is called
-        
-        // In this simple version, bot will loop through all mortgageable properties
-        // and mortgage them one by one until it has positive money
-        // then it does the same with all sellable properties
+        if (CanSellBuildings())
+        {
+            var unbuildableProperties = GetUnbuildableProperties();
+            foreach (var street in unbuildableProperties)
+            {
+                street.SellBuilding();
+                if (Money >= 0)
+                {
+                    CompleteTurn();
+                    yield break;
+                }
+            }
+        }
         
         if (CanMortgage())
         {
@@ -142,7 +151,7 @@ public class Bot : Player
                 if (Money >= 0)
                 {
                     CompleteTurn();
-                    yield break; // <- equivalent to return for IEnumerator 
+                    yield break;
                 }
             }
         }
@@ -160,7 +169,5 @@ public class Bot : Player
                 }
             }
         }
-        
-        // bot should also loop through all houses and hotels first but that has not been implemented yet
     }
 }

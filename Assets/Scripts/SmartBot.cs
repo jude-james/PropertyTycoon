@@ -20,7 +20,7 @@ public class SmartBot : Player
     private Model bidModel;
     private int turnNumber = 0;
 
-    new void Start()
+    private new void Start()
     {
         var assetName = "GeneralModel.onnx";
         var modelBinary = Resources.Load<NNModel>(assetName.Substring(0, assetName.LastIndexOf('.')));
@@ -119,7 +119,7 @@ public class SmartBot : Player
         3: Turns currently spent in jail
         4: Current Turn
         */
-        float[] inputs = {GetOutOfJailFreeCards.Count,Money,_roundsInJail,turnNumber};
+        float[] inputs = {GetOutOfJailFreeCards.Count,Money,RoundsInJail,turnNumber};
 
         Tensor inputTensor = new Tensor(1,1,4,1,inputs);
         jailWorker.Execute(inputTensor);
@@ -232,9 +232,9 @@ public class SmartBot : Player
         14: Number of utils owned
         */
         float i1 = Money/1500;
-        float i2 = -(Board.Instance._auctionProperty.Cost/400);
-        float i3 = Board.Instance.AuctionPrice/(Board.Instance._auctionProperty.Cost*0.5f);
-        float i4 = propertyNoToColour(Board.Instance._auctionProperty.PropertyNumber);
+        float i2 = -(Board.Instance.AuctionProperty.Cost/400);
+        float i3 = Board.Instance.AuctionPrice/(Board.Instance.AuctionProperty.Cost*0.5f);
+        float i4 = propertyNoToColour(Board.Instance.AuctionProperty.PropertyNumber);
         List<float> colourCount = TitleDeedsToColourPercentage(TitleDeeds);
         float i5 = colourCount[0]/2; //Brown
         float i6 = colourCount[1]/3; // Blue

@@ -31,7 +31,7 @@ public class Player : MonoBehaviour
     public Property[] TitleDeeds { get; private set; }
     
     public bool InJail { get; private set; }
-    public int _roundsInJail;
+    protected int RoundsInJail;
     private const int RoundsInJailLimit = 2;
     protected const int PostBailAmount = 50;
     protected List<ActionCard> GetOutOfJailFreeCards;
@@ -93,19 +93,19 @@ public class Player : MonoBehaviour
     /// </summary>
     private void DetermineJailAction()
     {
-        if (_roundsInJail == 0)
+        if (RoundsInJail == 0)
         {
-            _roundsInJail++;
+            RoundsInJail++;
             InJailDecision();
         }
-        else if (_roundsInJail == RoundsInJailLimit)
+        else if (RoundsInJail == RoundsInJailLimit)
         {
-            _roundsInJail = 0;
+            RoundsInJail = 0;
             LeaveJail();
         }
         else
         {
-            _roundsInJail++;
+            RoundsInJail++;
             OnEndTurn();
         }
     }
@@ -153,8 +153,8 @@ public class Player : MonoBehaviour
         }
         else
         {
-            //ShiftTileIndex(DiceRoll);
-            ShiftTileIndex(moveTest);
+            ShiftTileIndex(DiceRoll);
+            //ShiftTileIndex(moveTest);
             MoveToTile(Direction.Shortest);
         }
     }
@@ -378,7 +378,7 @@ public class Player : MonoBehaviour
     private IEnumerator LeaveJailCoroutine()
     {
         InJail = false;
-        _roundsInJail = 0;
+        RoundsInJail = 0;
 
         var justVisitingIndex = Board.Instance.GetTileIndex("Jail/Just visiting");
         SetNewTileIndex(justVisitingIndex);
@@ -833,10 +833,8 @@ public class Player : MonoBehaviour
     {
         var buildableProperties = new List<Property>();
         var propertySet = new List<Property>();
-        // TODO make enum?
-        //string[] sets = { "Brown", "Blue", "Purple", "Orange", "Red", "Yellow", "Green", "DeepBlue" };
-        int count = 0;
-
+        
+        var count = 0;
         var sets = Enum.GetValues(typeof(Set)).Cast<Set>();
         foreach (var set in sets)
         {
@@ -871,19 +869,9 @@ public class Player : MonoBehaviour
         return buildableProperties;
     }
 
-    protected List<Property> GetUnbuildableProperties()
+    protected List<Street> GetUnbuildableProperties()
     {
-        var unbuildableProperties = new List<Property>();
-        
-        foreach (var street in TitleDeeds.OfType<Street>())
-        {
-            if (!street.HasNoBuildings())
-            {
-                unbuildableProperties.Add(street);
-            }
-        }
-
-        return unbuildableProperties;
+        return TitleDeeds.OfType<Street>().Where(street => !street.HasNoBuildings()).ToList();
     }
     
     protected bool CanMortgage()

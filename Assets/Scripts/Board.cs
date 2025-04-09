@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tiles;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -48,7 +49,7 @@ public class Board : Singleton<Board>
     private int _currentBidderIndex;
     public int AuctionPrice { get; private set; }
     public int BidAmount => 20;
-    public Property _auctionProperty;
+    public Property AuctionProperty { get; private set; }
     
     private readonly WaitForSeconds _timeBetweenTurns = new(1);
     private readonly WaitForSeconds _timeBetweenBids = new(0.5f);
@@ -76,21 +77,30 @@ public class Board : Singleton<Board>
 
         Players = new List<Player>();
         
-        /*
         var menuPlayers = Menu.GetMenuPlayers();
         foreach (var menuPlayer in menuPlayers)
         {
             var playerObj = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity);
-            var player = menuPlayer.isBot ? playerObj.AddComponent<Bot>() : playerObj.AddComponent<Player>();
+
+            Player player;
+            if (menuPlayer.isSmart)
+                player = playerObj.AddComponent<SmartBot>();
+            else if (menuPlayer.isBot)
+                player = playerObj.AddComponent<Bot>();
+            else
+                player = playerObj.AddComponent<Player>();
             
             player.SetSprite(tokens[menuPlayer.token]);
             player.Name = menuPlayer.name;
             
             Players.Add(player);
         }
-        */
+
+        var time = Menu.GetTime();
+        // TODO timer
         
         // Manually assigning players for testing purposes
+        /*
         var pl1 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         pl1.SetSprite(tokens[0]);
         pl1.Name = tokens[0].name;
@@ -106,6 +116,7 @@ public class Board : Singleton<Board>
         Players.Add(pl1);
         Players.Add(pl2);
         Players.Add(pl3);
+        */
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
@@ -158,7 +169,7 @@ public class Board : Singleton<Board>
     /// </summary>
     public void StartAuction(Property property)
     {
-        _auctionProperty = property;
+        AuctionProperty = property;
         AuctionPrice = BidAmount;
         UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
         UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
@@ -210,7 +221,7 @@ public class Board : Singleton<Board>
         {
             UIManager.Instance.HideAuctionPrompt();
             
-            _bidders[0].WinAuction(_auctionProperty, AuctionPrice);
+            _bidders[0].WinAuction(AuctionProperty, AuctionPrice);
             _currentPlayer.CompleteTurn();
         }
         else

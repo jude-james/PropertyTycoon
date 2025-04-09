@@ -153,7 +153,7 @@ namespace Tiles
         /// <summary>
         /// Sells a house or hotel on this street back to the bank
         /// </summary>
-        public void SellBuildings()
+        public void SellBuilding()
         {
             if (HasMaxBuildings())
             {
@@ -213,7 +213,7 @@ namespace Tiles
 
             if (InSellBuildingsSelection)
             {
-                SellBuildings();
+                SellBuilding();
             }
         }
     }

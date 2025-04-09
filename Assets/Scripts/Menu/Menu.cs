@@ -27,10 +27,8 @@ public class Menu : MonoBehaviour
     [SerializeField] private GameObject tokenChoicesObject;
     private TMP_Dropdown tokenChoices;
     private bool error;
-    private bool timed;
-    private float time;
-
-    public bool smartBots { get; private set; }
+    private static bool timed;
+    private static float time;
 
     private static List<MenuPlayer> initPlayers;
 
@@ -192,16 +190,11 @@ public class Menu : MonoBehaviour
 
         if (!error)
         {
-            SceneManager.LoadScene(1);
-            // Scene will be loaded, then the board will retrieve the player data to create players
-
             // Gets time from time slider
             time = timeSlider.value;
 
-            // Gets whether bots are smart or not from the toggle
-            smartBots = smartBotsToggle.isOn;
-
-            Debug.Log(smartBots);
+            // Scene will be loaded, then the board will retrieve the player data to create players
+            SceneManager.LoadScene(1);
         }
     }
 
@@ -210,12 +203,7 @@ public class Menu : MonoBehaviour
         return initPlayers;
     }
 
-    private void ExitGame()
-    {
-        Application.Quit();
-    }
-
-    public float GetTime()
+    public static float GetTime()
     {
         if (timed)
         {
@@ -226,6 +214,11 @@ public class Menu : MonoBehaviour
             return 0;
             // 0 means infinite
         }
+    }
+
+    private void ExitGame()
+    {
+        Application.Quit();
     }
 }
 /// @endcond
