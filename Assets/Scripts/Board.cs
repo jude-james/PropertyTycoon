@@ -17,7 +17,7 @@ public class Board : Singleton<Board>
     private GameObject _bankInfoPanel;
     private TMP_Text _freeParkingSumText;
     
-    [SerializeField] private Sprite[] tokens; // temporary
+    [SerializeField] private Sprite[] tokens; // TODO remove once menu is done
 
     public Vector2 JailPosition => jailPosition.position;
     
@@ -82,11 +82,11 @@ public class Board : Singleton<Board>
         pl1.SetSprite(tokens[0]);
         pl1.Name = tokens[0].name;
         
-        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
+        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         pl2.SetSprite(tokens[1]);
         pl2.Name = tokens[1].name;
         
-        var pl3 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
+        var pl3 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         pl3.SetSprite(tokens[2]);
         pl3.Name = tokens[2].name;
         

@@ -10,14 +10,19 @@ using UnityEngine.SceneManagement;
 /// @cond
 public class Menu : MonoBehaviour
 {
+    [SerializeField] private GameObject playerMenu;
+    [SerializeField] private GameObject mainMenu;
+
     [SerializeField] private Sprite humanImage;
     [SerializeField] private Sprite botImage;
+    [SerializeField] private Sprite empty;
     [SerializeField] private Button[] playerDisplay;
 
     [SerializeField] private TextMeshProUGUI message;
-    [SerializeField] private Button start, addHuman, addBot;
+    [SerializeField] private Button start, exit, startGame, addHuman, addBot;
     [SerializeField] private TMP_InputField inputName;
 
+    [SerializeField] private GameObject tokenChoicesObject;
     private TMP_Dropdown tokenChoices;
     private bool error;
 
@@ -28,10 +33,11 @@ public class Menu : MonoBehaviour
         DontDestroyOnLoad(this);
 
         initPlayers = new List<MenuPlayer>(6);
-        Debug.Log(initPlayers.Count);
-        tokenChoices = GameObject.Find("Token").GetComponent<TMP_Dropdown>();
 
-        start.onClick.AddListener(StartGame);
+        tokenChoices = tokenChoicesObject.GetComponent<TMP_Dropdown>();
+        start.onClick.AddListener(ChangeMenu);
+        exit.onClick.AddListener(ExitGame);
+        startGame.onClick.AddListener(StartGame);
         addHuman.onClick.AddListener(() => Add(false));
         addBot.onClick.AddListener(() => Add(true));
         //for (int i = 0; i < 6; i++) { playerDisplay[i].onClick.AddListener(() => Remove(i)); }
@@ -54,12 +60,10 @@ public class Menu : MonoBehaviour
             playerDisplay[i].GetComponent<Button>().interactable = true;
             if (initPlayers[i].isBot)
             {
-                Debug.Log("botImage");
                 playerDisplay[i].GetComponent<Image>().sprite = botImage;
             }
             else
             {
-                Debug.Log("humanImage");
                 playerDisplay[i].GetComponent<Image>().sprite = humanImage;
             }
             i++;
@@ -68,7 +72,7 @@ public class Menu : MonoBehaviour
         while (i < playerDisplay.Length)
         {
             playerDisplay[i].GetComponent<Button>().interactable = false;
-            playerDisplay[i].GetComponent<Image>().sprite = null;
+            playerDisplay[i].GetComponent<Image>().sprite = empty;
             i++;
         }
     }
@@ -118,6 +122,12 @@ public class Menu : MonoBehaviour
         DisplayPlayers();
     }
 
+    private void ChangeMenu()
+    {
+        playerMenu.SetActive(true);
+        mainMenu.SetActive(false);
+    }
+
     private void StartGame()
     {
         error = false;
@@ -155,6 +165,11 @@ public class Menu : MonoBehaviour
             SceneManager.LoadScene(1);
             // Scene will be loaded, then the board will retrieve the player data to create players
         }
+    }
+
+    private void ExitGame()
+    {
+        Application.Quit();
     }
 }
 /// @endcond
