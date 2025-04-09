@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -19,12 +17,19 @@ public class Menu : MonoBehaviour
     [SerializeField] private Button[] playerDisplay;
 
     [SerializeField] private TextMeshProUGUI message;
-    [SerializeField] private Button start, exit, startGame, addHuman, addBot;
+    [SerializeField] private Slider timeSlider;
+    [SerializeField] private GameObject timeMenu;
+    [SerializeField] private Button start, exit, startGame, addHuman, addBot, fullGame, timedGame;
+    [SerializeField] private Toggle smartBotsToggle;
     [SerializeField] private TMP_InputField inputName;
 
     [SerializeField] private GameObject tokenChoicesObject;
     private TMP_Dropdown tokenChoices;
     private bool error;
+    private bool timed;
+    private float time;
+
+    public bool smartBots { get; private set; }
 
     private List<MenuPlayer> initPlayers;
 
@@ -37,6 +42,8 @@ public class Menu : MonoBehaviour
         tokenChoices = tokenChoicesObject.GetComponent<TMP_Dropdown>();
         start.onClick.AddListener(ChangeMenu);
         exit.onClick.AddListener(ExitGame);
+        fullGame.onClick.AddListener(() => ChangeGameType(false));
+        timedGame.onClick.AddListener(() => ChangeGameType(true));
         startGame.onClick.AddListener(StartGame);
         addHuman.onClick.AddListener(() => Add(false));
         addBot.onClick.AddListener(() => Add(true));
@@ -49,6 +56,7 @@ public class Menu : MonoBehaviour
         playerDisplay[5].onClick.AddListener(() => Remove(5));
 
         message.text = "Add players and then press start";
+        timed = false;
     }
 
     private void DisplayPlayers()
@@ -128,6 +136,24 @@ public class Menu : MonoBehaviour
         mainMenu.SetActive(false);
     }
 
+    private void ChangeGameType(bool timedGamePressed)
+    {
+        timed = timedGamePressed;
+
+        // Shows time slider, moves start button and toggle
+        timeMenu.SetActive(timed);
+        if (timed == true)
+        {
+            startGame.gameObject.transform.localPosition = new Vector3(90, -75, 0);
+            smartBotsToggle.gameObject.transform.localPosition = new Vector3(110, -47.5f, 0);
+        }
+        else
+        {
+            startGame.gameObject.transform.localPosition = new Vector3(0, -75, 0);
+            smartBotsToggle.gameObject.transform.localPosition = new Vector3(20, -47.5f, 0);
+        }
+    }
+
     private void StartGame()
     {
         error = false;
@@ -164,12 +190,33 @@ public class Menu : MonoBehaviour
         {
             SceneManager.LoadScene(1);
             // Scene will be loaded, then the board will retrieve the player data to create players
+
+            // Gets time from time slider
+            time = timeSlider.value;
+
+            // Gets whether bots are smart or not from the toggle
+            smartBots = smartBotsToggle.isOn;
+
+            Debug.Log(smartBots);
         }
     }
 
     private void ExitGame()
     {
         Application.Quit();
+    }
+
+    public float GetTime()
+    {
+        if (timed)
+        {
+            return time;
+        }
+        else
+        {
+            return 0;
+            // 0 means infinite
+        }
     }
 }
 /// @endcond
