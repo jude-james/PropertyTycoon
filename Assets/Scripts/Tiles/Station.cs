@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -10,13 +11,14 @@ namespace Tiles
         private int _rent3;
         private int _rent4;
         
-        public void SetUp(string name, int cost, int rent1, int rent2, int rent3, int rent4)
+        public void SetUp(string name, int cost, int propertyNumber, int rent1, int rent2, int rent3, int rent4)
         {
             _rent1 = rent1;
             _rent2 = rent2;
             _rent3 = rent3;
             _rent4 = rent4;
-            base.SetUp(name, cost);
+            CurrentRent = _rent1;
+            base.SetUp(name, cost, propertyNumber);
         }
 
         protected override void SetCard()
@@ -35,9 +37,20 @@ namespace Tiles
 
         protected override void PayRent(Player player)
         {
-            // TODO figure out rent based on how many stations OwnedBy owns
+            var numberOfStationsOwned = OwnedBy.TitleDeeds.Count(property => property != null && property is Station);
+            CurrentRent = numberOfStationsOwned switch
+            {
+                1 => _rent1,
+                2 => _rent2,
+                3 => _rent3,
+                4 => _rent4,
+                _ => CurrentRent
+            };
+            
             player.TakeMoney(CurrentRent);
             OwnedBy.GiveMoney(CurrentRent);
+            
+            base.PayRent(player);
         }
     }
 }

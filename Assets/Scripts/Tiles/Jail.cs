@@ -4,7 +4,7 @@ namespace Tiles
     {
         public override void OnLanded(Player player)
         {
-            player.GoToJail();
+            player.GoToJail(true);
         }
     }
 }

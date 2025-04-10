@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -8,10 +9,31 @@ namespace Tiles
     /// </summary>
     public class Tile : MonoBehaviour
     {
-        protected string Name { get; private set; }
+        public string Name { get; protected set; }
         public GameObject Card { get; protected set; }
         
-        [SerializeField] private Vector2 position;
+        public bool InMortgageSelection { get; set; }
+        public bool InUnmortgageSelection { get; set; }
+        public bool InSellPropertySelection { get; set; }
+        public bool InBuildSelection { get; set; }
+        public bool InSellBuildingsSelection { get; set; }
+        
+        private BoxCollider2D _boxCollider;
+        private LineRenderer _lineRenderer;
+
+        private Color _lineStartColour;
+        private Color _lineEndColour;
+        
+        private void Start()
+        {
+            _boxCollider = GetComponent<BoxCollider2D>();
+            _lineRenderer = GetComponent<LineRenderer>();
+
+            _lineStartColour = _lineRenderer.startColor;
+            _lineEndColour = _lineRenderer.endColor;
+            
+            Outline();
+        }
 
         public void SetUp(string name)
         {
@@ -48,7 +70,32 @@ namespace Tiles
             }
         }
 
-        private void ShowCard()
+        /// <summary>
+        /// Draws an outline using the tiles box collider
+        /// </summary>
+        private void Outline()
+        {
+            _lineRenderer.startWidth = 0.15f;
+            _lineRenderer.endWidth = 0.15f;
+            _lineRenderer.positionCount = 4;
+            _lineRenderer.loop = true;
+            _lineRenderer.numCornerVertices = 5;
+            
+            var corners = new Vector3[4];
+            corners[0] = _boxCollider.offset + new Vector2(-_boxCollider.size.x, -_boxCollider.size.y) * 0.5f;
+            corners[1] = _boxCollider.offset + new Vector2(-_boxCollider.size.x, _boxCollider.size.y) * 0.5f;
+            corners[2] = _boxCollider.offset + new Vector2(_boxCollider.size.x, _boxCollider.size.y) * 0.5f;
+            corners[3] = _boxCollider.offset + new Vector2(_boxCollider.size.x, -_boxCollider.size.y) * 0.5f;
+            
+            for (int i = 0; i < corners.Length; i++)
+            {
+                corners[i] = transform.TransformPoint(corners[i]);
+            }
+
+            _lineRenderer.SetPositions(corners);
+        }
+
+        protected virtual void ShowCard()
         {
             if (Card != null)
             {
@@ -56,7 +103,7 @@ namespace Tiles
             }
         }
 
-        private void HideCard()
+        protected virtual void HideCard()
         {
             if (Card != null)
             {
@@ -64,24 +111,48 @@ namespace Tiles
             }
         }
 
-        private void OnMouseEnter()
+        protected void ShowOutline()
         {
-            ShowCard();
-        }
-
-        private void OnMouseExit()
-        {
-            HideCard();
+            _lineRenderer.startColor = _lineStartColour;
+            _lineRenderer.endColor = _lineEndColour;
+            _lineRenderer.enabled = true;
         }
         
-        public void setPosition(float x,float y)
+        public void ShowOutline(Color startColor, Color endColour)
         {
-            position = new Vector2(x,y);
+            _lineRenderer.startColor = startColor;
+            _lineRenderer.endColor = endColour;
+            _lineRenderer.enabled = true;
         }
 
-        public Vector2 getPosition()
+        public void HideOutline()
         {
-            return position;
+            _lineRenderer.enabled = false;
+        }
+
+        private bool InSelection()
+        {
+            return InMortgageSelection || InUnmortgageSelection || InSellPropertySelection || InBuildSelection || InSellBuildingsSelection;
+        }
+        
+        protected virtual void OnMouseEnter()
+        {
+            ShowCard();
+            
+            if (!InSelection())
+            {
+                ShowOutline();
+            }
+        }
+
+        protected virtual void OnMouseExit()
+        {
+            HideCard();
+            
+            if (!InSelection())
+            {
+                HideOutline();
+            }
         }
         
         public string getName() {

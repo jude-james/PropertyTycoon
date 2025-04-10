@@ -1,18 +1,24 @@
+using System;
 using System.Collections.Generic;
 using Tiles;
 using UnityEngine;
+using Action = Tiles.Action;
 
+/// <summary>
+/// Reads and initialises board and card data into the game from editable CSV files
+/// </summary>
 public class DataReader
 {
     private const string Path = "Assets/CSVFiles/";
     private const string BoardDataFileName = "PropertyTycoonBoardDataImproved(Sheet1).csv";
-    private const string CardDataFileName = "PropertyTycoonCardData(Sheet1).csv";
+    private const string CardDataFileName = "PropertyTycoonCardDataImproved(Sheet1).csv";
     
     public List<Tile> Tiles { get; private set; }
     public List<Property> Properties { get; private set; }
-    public Dictionary<string, string> OpportunityKnocksCards { get; private set; }
-    public Dictionary<string, string> PotLuckCards { get; private set; }
-
+    
+    public Queue<ActionCard> PotLuckCards { get; private set; }
+    public Queue<ActionCard> OpportunityKnocksCards { get; private set; }
+    
     /// <summary>
     /// Reads the board data from a CSV file and sets up the board tiles.
     /// </summary>
@@ -43,7 +49,8 @@ public class DataReader
         
         Tiles = new List<Tile>();
         Properties = new List<Property>();
-        
+        var propertyNumber = 0;
+
         var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
         
         for (int i = 0; i < boardTiles.childCount; i++)
@@ -51,120 +58,188 @@ public class DataReader
             var name = boardDataMatrix[i+startCol][nameRow];
             var type = boardDataMatrix[i+startCol][typeRow];
             
-            if (type == "Property")
+            switch (type)
             {
-                var cost = int.Parse(boardDataMatrix[i+startCol][costRow]);
-                var subtype = boardDataMatrix[i+startCol][subtypeRow];
-                if (subtype == "Street")
+                case "Property":
                 {
-                    var set = boardDataMatrix[i+startCol][setRow];
-                    var initialRent = int.Parse(boardDataMatrix[i+startCol][initialRentRow]);
-                    var rentWithColourSet = initialRent * 2;
-                    
-                    var improvedRent = new int[improvedRentRowEnd - improvedRentRowStart + 1];
-                    for (int j = improvedRentRowStart; j <= improvedRentRowEnd; j++)
+                    var cost = int.Parse(boardDataMatrix[i+startCol][costRow]);
+                    var subtype = boardDataMatrix[i+startCol][subtypeRow];
+                    switch (subtype)
                     {
-                        var rent = int.Parse(boardDataMatrix[i+startCol][j]);
-                        improvedRent[j - improvedRentRowStart] = rent;
+                        case "Street":
+                        {
+                            var setStr = boardDataMatrix[i+startCol][setRow];
+                            Enum.TryParse(setStr, out Set set);
+
+                            var initialRent = int.Parse(boardDataMatrix[i+startCol][initialRentRow]);
+                            var rentWithColourSet = initialRent * 2;
+                    
+                            var improvedRent = new int[improvedRentRowEnd - improvedRentRowStart + 1];
+                            for (int j = improvedRentRowStart; j <= improvedRentRowEnd; j++)
+                            {
+                                var rent = int.Parse(boardDataMatrix[i+startCol][j]);
+                                improvedRent[j - improvedRentRowStart] = rent;
+                            }
+
+                            var houseCost = int.Parse(boardDataMatrix[i+startCol][houseCostRow]);
+                            var hotelCost = int.Parse(boardDataMatrix[i+startCol][hotelCostRow]);
+                    
+                            var street = boardTiles.GetChild(i).gameObject.AddComponent<Street>();
+                            street.SetUp(name, cost, propertyNumber, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost);
+                            Tiles.Add(street);
+                            break;
+                        }
+                        case "Station":
+                        {
+                            var rent1 = int.Parse(boardDataMatrix[i+startCol][stationRent1Row]);
+                            var rent2 = int.Parse(boardDataMatrix[i+startCol][stationRent2Row]);
+                            var rent3 = int.Parse(boardDataMatrix[i+startCol][stationRent3Row]);
+                            var rent4 = int.Parse(boardDataMatrix[i+startCol][stationRent4Row]);
+                    
+                            var station = boardTiles.GetChild(i).gameObject.AddComponent<Station>();
+                            station.SetUp(name, cost, propertyNumber, rent1, rent2, rent3, rent4);
+                            Tiles.Add(station);
+                            break;
+                        }
+                        case "Utility":
+                        {
+                            var rent1 = int.Parse(boardDataMatrix[i+startCol][utilRent1Row]);
+                            var rent2 = int.Parse(boardDataMatrix[i+startCol][utilRent2Row]);
+                            var utilType = boardDataMatrix[i+startCol][specificRow];
+
+                            var utility = boardTiles.GetChild(i).gameObject.AddComponent<Utility>();
+                            utility.SetUp(name, cost, propertyNumber, rent1, rent2, utilType);
+                            Tiles.Add(utility);
+                            break;
+                        }
                     }
-
-                    var houseCost = int.Parse(boardDataMatrix[i+startCol][houseCostRow]);
-                    var hotelCost = int.Parse(boardDataMatrix[i+startCol][hotelCostRow]);
-                    
-                    var street = boardTiles.GetChild(i).gameObject.AddComponent<Street>();
-                    street.SetUp(name, cost, set, initialRent, rentWithColourSet, improvedRent, houseCost, hotelCost);
-                    Tiles.Add(street);
+                
+                    Properties.Add((Property) Tiles[^1]);
+                    propertyNumber++;
+                    break;
                 }
-                else if (subtype == "Station")
+                case "Tax":
                 {
-                    var rent1 = int.Parse(boardDataMatrix[i+startCol][stationRent1Row]);
-                    var rent2 = int.Parse(boardDataMatrix[i+startCol][stationRent2Row]);
-                    var rent3 = int.Parse(boardDataMatrix[i+startCol][stationRent3Row]);
-                    var rent4 = int.Parse(boardDataMatrix[i+startCol][stationRent4Row]);
-                    
-                    var station = boardTiles.GetChild(i).gameObject.AddComponent<Station>();
-                    station.SetUp(name, cost, rent1, rent2, rent3, rent4);
-                    Tiles.Add(station);
+                    var amount = int.Parse(boardDataMatrix[i+startCol][taxAmountRow]);
+                
+                    var tax = boardTiles.GetChild(i).gameObject.AddComponent<Tax>();
+                    tax.SetUp(name, amount);
+                    Tiles.Add(tax);
+                    break;
                 }
-                else if (subtype == "Utility")
+                case "Action":
                 {
-                    var rent1 = int.Parse(boardDataMatrix[i+startCol][utilRent1Row]);
-                    var rent2 = int.Parse(boardDataMatrix[i+startCol][utilRent2Row]);
-                    var utilType = boardDataMatrix[i+startCol][specificRow];
+                    var cardTypeStr = boardDataMatrix[i+startCol][subtypeRow];
+                    Enum.TryParse(cardTypeStr, out CardType cardType);
 
-                    var utility = boardTiles.GetChild(i).gameObject.AddComponent<Utility>();
-                    utility.SetUp(name, cost, rent1, rent2, utilType);
-                    Tiles.Add(utility);
+                    var action = boardTiles.GetChild(i).gameObject.AddComponent<Action>();
+                    action.SetUp(name, cardType);
+                    Tiles.Add(action);
+                    break;
                 }
-                
-                Properties.Add((Property) Tiles[^1]);
-            }
-            else if (type == "Tax")
-            {
-                var amount = int.Parse(boardDataMatrix[i+startCol][taxAmountRow]);
-                
-                var tax = boardTiles.GetChild(i).gameObject.AddComponent<Tax>();
-                tax.SetUp(name, amount);
-                Tiles.Add(tax);
-            }
-            else if (type == "Action")
-            {
-                var cardType = boardDataMatrix[i+startCol][subtypeRow];
-                
-                var actionCard = boardTiles.GetChild(i).gameObject.AddComponent<ActionCard>();
-                actionCard.SetUp(name, cardType);
-                Tiles.Add(actionCard);
-            }
-            else if (type == "Jail")
-            {
-                var jail = boardTiles.GetChild(i).gameObject.AddComponent<Jail>();
-                jail.SetUp(name);
-                Tiles.Add(jail);
-            }
-            else if (type == "FreeParking")
-            {
-                var freeParking = boardTiles.GetChild(i).gameObject.AddComponent<FreeParking>();
-                freeParking.SetUp(name);
-                Tiles.Add(freeParking);
-            }
-            else
-            {
-                // Go & Just Visiting are remaining
-                var tile = boardTiles.GetChild(i).gameObject.AddComponent<Tile>();
-                tile.SetUp(name);
-                Tiles.Add(tile);
+                case "Jail":
+                {
+                    var jail = boardTiles.GetChild(i).gameObject.AddComponent<Jail>();
+                    jail.SetUp(name);
+                    Tiles.Add(jail);
+                    break;
+                }
+                case "FreeParking":
+                {
+                    var freeParking = boardTiles.GetChild(i).gameObject.AddComponent<FreeParking>();
+                    freeParking.SetUp(name);
+                    Tiles.Add(freeParking);
+                    break;
+                }
+                default:
+                {
+                    // Go & Just Visiting are remaining
+                    var tile = boardTiles.GetChild(i).gameObject.AddComponent<Tile>();
+                    tile.SetUp(name);
+                    Tiles.Add(tile);
+                    break;
+                }
             }
         }
     }
-    
+
     /// <summary>
     /// Reads the card data from a CSV file and sets up the opportunity knocks and pot luck cards.
     /// </summary>
     public void ReadCardData()
     {
+        var startColumn = 2;
+        var endColumn = 18;
+        PotLuckCards = ReadActionCards(startColumn, endColumn, CardType.PotLuck);
+        
+        startColumn = 20;
+        endColumn = 35;
+        OpportunityKnocksCards = ReadActionCards(startColumn, endColumn, CardType.OppKnock);
+    }
+
+    private Queue<ActionCard> ReadActionCards(int startColumn, int endColumn, CardType cardType)
+    {
         // Hard coded values by looking at Exel spreadsheet
         const int descriptionRow = 0;
-        const int actionRow = 3;
-            
-        var startColumn = 5;
-        var endColumn = 21;
-            
+        const int actionTypeRow = 1;
+        const int amountRow = 2;
+        const int houseRepairAmountRow = 3;
+        const int hotelRepairAmountRow = 4;
+        const int tileNameRow = 5;
+        const int directionRow = 6;
+        const int moveAmountRow = 7;
+
+        var actionCards = new Queue<ActionCard>();
+        
         var cardDataMatrix = CSVParser.ReadCSV(Path + CardDataFileName);
-            
-        OpportunityKnocksCards = new Dictionary<string, string>();
-        PotLuckCards = new Dictionary<string, string>();
-            
-        for (int i = startColumn; i <= endColumn; i++)
-        {
-            PotLuckCards.Add(cardDataMatrix[i][descriptionRow], cardDataMatrix[i][actionRow]);
-        }
-            
-        startColumn = 26;
-        endColumn = 41;
 
         for (int i = startColumn; i <= endColumn; i++)
         {
-            OpportunityKnocksCards.Add(cardDataMatrix[i][descriptionRow], cardDataMatrix[i][actionRow]);
+            ActionCard actionCard;
+            
+            var description = cardDataMatrix[i][descriptionRow];
+            var actionTypeStr = cardDataMatrix[i][actionTypeRow];
+            
+            Enum.TryParse(actionTypeStr, out ActionType actionType);
+            
+            switch (actionType)
+            {
+                case ActionType.GiveMoney or ActionType.TakeMoney or ActionType.AddToFreeParking or ActionType.CollectMoney:
+                {
+                    var amount = int.Parse(cardDataMatrix[i][amountRow]); 
+                    actionCard = new ActionCard(description, actionType, cardType, amount);
+                    break;
+                }
+                case ActionType.TakeBuildingMoney:
+                {
+                    var houseRepairAmount = int.Parse(cardDataMatrix[i][houseRepairAmountRow]);
+                    var hotelRepairAmount = int.Parse(cardDataMatrix[i][hotelRepairAmountRow]);
+                    actionCard = new ActionCard(description, actionType, cardType, houseRepairAmount: houseRepairAmount, hotelRepairAmount: hotelRepairAmount);
+                    break;
+                }
+                case ActionType.MoveTo:
+                {
+                    var tileName = cardDataMatrix[i][tileNameRow];
+                    var directionStr = cardDataMatrix[i][directionRow]; 
+                    Enum.TryParse(directionStr, out Direction direction);
+
+                    actionCard = new ActionCard(description, actionType, cardType, tileName:tileName, direction: direction);
+                    break;
+                }
+                case ActionType.MoveBy:
+                {
+                    var moveAmount = int.Parse(cardDataMatrix[i][moveAmountRow]);
+                    actionCard = new ActionCard(description, actionType, cardType, moveAmount: moveAmount);
+                    break;
+                }
+                default:
+                    actionCard = new ActionCard(description, actionType, cardType);
+                    break;
+            }
+            
+            actionCards.Enqueue(actionCard);
         }
+
+        return actionCards;
     }
 }

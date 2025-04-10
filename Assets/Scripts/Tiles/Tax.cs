@@ -1,3 +1,5 @@
+using TMPro;
+
 namespace Tiles
 {
     public class Tax : Tile
@@ -10,9 +12,19 @@ namespace Tiles
             base.SetUp(name);
         }
         
+        protected override void SetBoardTile()
+        {
+            base.SetBoardTile();
+            if (transform.childCount > 0)
+            {
+                var amountText = transform.GetChild(1).GetComponent<TMP_Text>();
+                amountText.SetText("PAY £"+_amount);
+            }
+        }
+        
         public override void OnLanded(Player player)
         {
-            // TODO override setCard so tax has a card, then show the card for X amount of seconds
+            AudioManager.Instance.Play("taxSound");
             player.TakeMoney(_amount);
             player.CompleteTurn();
         }

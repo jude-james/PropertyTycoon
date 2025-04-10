@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -9,18 +10,40 @@ namespace Tiles
     //[System.Serializable]
     public class Property : Tile
     {
-        protected Player OwnedBy; // initially owned by the bank, null can be the bank for now
+        public Player OwnedBy { get; set; }
         public int Cost { get; private set; }
-        protected bool Mortgaged;
-
-        private GameObject _mortgagedCard; // Each property can be turned over to see the mortgage into
-
-        protected int CurrentRent; // Although each property manages rent differently, they all still have a current rent value
+        public int PropertyNumber { get; private set; }
+        protected int CurrentRent;
         
-        protected void SetUp(string name, int cost)
+        public bool Mortgaged { get; set; }
+        public int MortgagedValue { get; private set; }
+        public int UnmortgagedValue { get; private set; }
+        
+        private GameObject _mortgagedCard;
+        
+        private readonly WaitForSeconds _payRentPopupTime = new(3);
+        
+        protected void SetUp(string name, int cost, int propertyNumber)
         {
             Cost = cost;
+            PropertyNumber = propertyNumber;
+            MortgagedValue = cost / 2;
+            UnmortgagedValue = (int) (MortgagedValue * 1.1f);
+            Name = name;
+            SetMortgagedCard();
             base.SetUp(name);
+        }
+
+        private void SetMortgagedCard()
+        {
+            _mortgagedCard = Instantiate(Resources.Load("Prefabs/Cards/Mortgaged")) as GameObject;
+            if (_mortgagedCard != null)
+            {
+                var cardSprite = _mortgagedCard.transform.GetChild(0);
+                cardSprite.GetChild(0).GetComponent<TMP_Text>().SetText(Name);
+                cardSprite.GetChild(1).GetComponent<TMP_Text>().SetText("MORTGAGE VALUE £" + MortgagedValue);
+                cardSprite.GetChild(2).GetComponent<TMP_Text>().SetText("TO UNMORTGAGE, PAY £" + UnmortgagedValue);
+            }
         }
         
         protected override void SetBoardTile()
@@ -32,23 +55,61 @@ namespace Tiles
                 costText.SetText("£"+Cost);
             }
         }
-        
-        public override void OnLanded(Player player)
+
+        protected override void ShowCard()
         {
-            if (Mortgaged || OwnedBy == player)
+            if (Mortgaged)
             {
-                // do nothing
-                player.CompleteTurn();
-            }
-            else if (OwnedBy != null)
-            {
-                // player pays rent to OwnedBy
-                PayRent(player);
+                if (_mortgagedCard != null) _mortgagedCard.SetActive(true);
             }
             else
             {
-                // player buy for the Cost, or auctions
-                player.ForSaleDecision(this);
+                if (Card != null) Card.SetActive(true);
+            }
+        }
+        
+        protected override void HideCard()
+        {
+            if (Mortgaged)
+            {
+                if (_mortgagedCard != null) _mortgagedCard.SetActive(false);
+            }
+            else
+            {
+                if (Card != null) Card.SetActive(false);
+            }
+        }
+        
+        public override void OnLanded(Player player)
+        {
+            if (OwnedBy != null) 
+            {
+                if (Mortgaged || OwnedBy == player || OwnedBy.InJail)
+                {
+                    player.CompleteTurn();
+                }
+                else
+                {
+                    PayRent(player);
+                }
+            }
+            else if (player.PassedGo)
+            {
+                // if in the rare case the player can't auction or buy the property,
+                // don't show the prompt at all because neither button will be available
+                if (!Board.Instance.CanAuction() && player.Money < Cost)
+                {
+                    player.CompleteTurn();
+                }
+                else
+                {
+                    AudioManager.Instance.Play("forSaleSound");
+                    player.ForSaleDecision(this);
+                }
+            }
+            else
+            {
+                player.CompleteTurn();
             }
         }
         
@@ -58,8 +119,86 @@ namespace Tiles
         /// <param name="player"> The player that needs to pay rent to the owner </param>
         protected virtual void PayRent(Player player)
         {
-            // TODO check if player is in jail first, or do this in the give money part, since i think
-            // if they are in jail, there is no situation where they can get money
+            StartCoroutine(PayRentCoroutine(player));
+        }
+
+        private IEnumerator PayRentCoroutine(Player player)
+        {
+            AudioManager.Instance.Play("payRentSound");
+            UIManager.Instance.ShowPayRentPopup(CurrentRent, OwnedBy.Name, OwnedBy.Sprite);
+            yield return _payRentPopupTime;
+            UIManager.Instance.HidePayRentPopup();
+            player.CompleteTurn();
+        }
+
+        /// <summary>
+        /// Mortgages this property
+        /// </summary>
+        public void Mortgage()
+        {
+            Mortgaged = true;
+            OwnedBy.GiveMoney(MortgagedValue);
+            
+            HideOutline();
+            Card.SetActive(false);
+            InMortgageSelection = false;
+        }
+
+        /// <summary>
+        /// Unmortgages this property
+        /// </summary>
+        public void Unmortgage()
+        {
+            Mortgaged = false;
+            OwnedBy.TakeMoney(UnmortgagedValue);
+            
+            HideOutline();
+            _mortgagedCard.SetActive(false);
+            InUnmortgageSelection = false;
+            
+            // Once player clicks unmortgage, check the player can afford to unmortgage the other properties
+            foreach (var property in OwnedBy.TitleDeeds)
+            {
+                if (property != null && property.Mortgaged && OwnedBy.Money < property.UnmortgagedValue)
+                {
+                    property.HideOutline();
+                    property.InUnmortgageSelection = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sells this property to the bank
+        /// </summary>
+        public void SellProperty()
+        {
+            OwnedBy.GiveMoney(Mortgaged ? MortgagedValue : Cost);
+            
+            Board.Instance.GiveTitleDeed(this);
+            OwnedBy.TakeTitleDeed(this);
+
+            OwnedBy = null;
+            
+            HideOutline();
+            InSellPropertySelection = false;
+        }
+        
+        protected virtual void OnMouseDown()
+        {
+            if (InMortgageSelection)
+            {
+                Mortgage();
+            }
+
+            if (InUnmortgageSelection)
+            {
+                Unmortgage();
+            }
+
+            if (InSellPropertySelection)
+            {
+                SellProperty();
+            }
         }
     }
 }

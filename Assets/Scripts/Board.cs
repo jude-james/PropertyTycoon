@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tiles;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -11,45 +14,45 @@ public class Board : Singleton<Board>
     [SerializeField] private Transform boardTiles;
     [SerializeField] private Transform jailPosition;
     [SerializeField] private GameObject playerPrefab;
-    
-    [SerializeField] private Sprite[] tokens; // temporary
+    [SerializeField] private Sprite[] tokens;
 
+    private GameObject _bankInfoPanel;
+    private TMP_Text _freeParkingSumText;
+    
     public Vector2 JailPosition => jailPosition.position;
     
     public List<Tile> Tiles { get; private set; }
-
-    // TODO update bank UI
     
+    public Property[] TitleDeeds { get; private set; }
+    
+    public Queue<ActionCard> PotLuckCards { get; private set; }
+    public Queue<ActionCard> OpportunityKnocksCards { get; private set; }
+    
+    private int _freeParkingSum;
+
     public int FreeParkingSum
     {
         get => _freeParkingSum;
         set
         {
             _freeParkingSum = value;
-            // TODO update sum text UI
+            UIManager.Instance.AnimateMoney(_freeParkingSumText, _freeParkingSum);
         }
     }
-    private int _freeParkingSum;
-
-    private Player[] _players;
     
-    private Bank _bank;
-    private Dictionary<string, string> _opportunityKnocksCardData = new();
-    private Dictionary<string, string> _potLuckCardData = new();
-
-    
+    public List<Player> Players { get; private set; }
     private Player _currentPlayer;
     private int _currentPlayerIndex;
 
+    private List<Player> _bidders = new();
+    private Player _currentBidder;
+    private int _currentBidderIndex;
+    public int AuctionPrice { get; private set; }
+    public int BidAmount => 20;
+    public Property AuctionProperty { get; private set; }
+    
     private readonly WaitForSeconds _timeBetweenTurns = new(1);
-    
-    [SerializeField] private Transform waypointPrefab;
-    [SerializeField] private float[,] positions = new float[2,40];
-    
-    // This is temporary and not very robust, will change when action cards are implemented
-    // Key tiles
-    public int justVisitingIndex = 10;
-    public int goIndex = 0;
+    private readonly WaitForSeconds _timeBetweenBids = new(0.5f);
 
     public void testBoardInit() {
         // ToDo: ask rudy/jude about moving init logic into 1 central protected method
@@ -83,122 +86,227 @@ public class Board : Singleton<Board>
     private void Start()
     {
         var dataReader = new DataReader();
+        
         dataReader.ReadBoardData(boardTiles);
         Tiles = dataReader.Tiles;
         
-        // Initially give the bank all the titleDeeds (properties), whilst the player titleDeeds start empty
-        var titleDeeds = dataReader.Properties;
-        _bank = new Bank(32, 12, titleDeeds);
+        TitleDeeds = new Property[dataReader.Properties.Count];
+        for (var i = 0; i < dataReader.Properties.Count; i++)
+        {
+            TitleDeeds[i] = dataReader.Properties[i];
+        }
         
         dataReader.ReadCardData();
-        _opportunityKnocksCardData = dataReader.OpportunityKnocksCards;
-        _potLuckCardData = dataReader.PotLuckCards;
+        var rng = new System.Random();
+        PotLuckCards = new Queue<ActionCard>(dataReader.PotLuckCards.ToList().OrderBy(_ => rng.Next()));
+        OpportunityKnocksCards = new Queue<ActionCard>(dataReader.OpportunityKnocksCards.ToList().OrderBy(_ => rng.Next()));
         
-        // Manually assigning players for testing purposes, will get players from main menu later
-        _players = new Player[2];
+        _bankInfoPanel = UIManager.Instance.BankInfoPanel;
+        _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
 
-        _players[0] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Player>();
-        _players[0].SetSprite(tokens[0]);
-        _players[0].Name = tokens[0].name;
+        Players = new List<Player>();
+        var menuPlayers = Menu.GetMenuPlayers();
+        foreach (var menuPlayer in menuPlayers)
+        {
+            var playerObj = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity);
+
+            Player player;
+            if (menuPlayer.isSmart)
+                player = playerObj.AddComponent<SmartBot>();
+            else if (menuPlayer.isBot)
+                player = playerObj.AddComponent<Bot>();
+            else
+                player = playerObj.AddComponent<Player>();
+            
+            player.SetSprite(tokens[menuPlayer.token]);
+            player.Name = menuPlayer.name;
+            
+            Players.Add(player);
+        }
         
-        _players[1] = Instantiate(playerPrefab, Tiles[0].transform.position, transform.rotation).AddComponent<Bot>();
-        _players[1].SetSprite(tokens[1]);
-        _players[1].Name = tokens[1].name;
-        
-        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
+        _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
     }
 
     /// <summary>
-    /// Ends the current player's turn and starts the next player's turn.
+    /// Ends the current players turn and starts the next players turn, unless the timer has reached zero
     /// </summary>
     public void EndTurn()
     {
-        StartCoroutine(StartNextTurn());
+        if (Timer.HasEnded)
+        {
+            GetWinner();
+        }
+        else
+        {
+            StartCoroutine(StartNextTurn());
+        }
     }
     
+    /// <summary>
+    /// Loops through the list of players and starts their turn, wrapping back to the first player if necessary
+    /// </summary>
     private IEnumerator StartNextTurn()
     {
         yield return _timeBetweenTurns;
-        _currentPlayerIndex++;
-        _currentPlayer = _players[_currentPlayerIndex % _players.Length];
+        _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
+        _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
     }
-    
-    /*Creates space position on the board using absolute values, 
-    this is probably not the most practical implementation
-    but the easiest i could think of for now without manually creating 40 different 
-    waypoint objects and placing them.
 
-    It also has a horizontal bias added, so if the board is move horizontally, the points should move with it.
-    */
-    private void positionWaypoints()
+    /// <summary>
+    /// Finds the player with the highest value and declares them the winner
+    /// </summary>
+    private void GetWinner()
     {
-        //change in position from last point
-        float change;
-        //finds the horizontal movement of the board from the center
-        float bias = transform.position.x;
-
-        //this is bottom right corner
-        Instantiate(waypointPrefab,new Vector2(24 + bias,-24),new Quaternion(),transform);
-        positions[0,0] = 24 + bias;
-        positions[1,0] = -24;
-
-        //bottom right --> bottom left
-        for (int i = 0; i < 9;i++)
+        var highestValue = 0;
+        var highestValuePlayer = Players[0];
+        foreach (var player in Players)
         {
-            change = i*((float)4.5);
-            Instantiate(waypointPrefab,new Vector2(18 - change + bias,-24),new Quaternion(),transform);
-            positions[0,i+1] = 18 - change + bias;
-            positions[1,i+1] = -24;
+            var value = player.GetTotalValue();
+            if (value > highestValue)
+            {
+                highestValue = value;
+                highestValuePlayer = player;
+            }
         }
+        UIManager.Instance.ShowWinnerPanel(highestValuePlayer);
+    }
 
-        //bottom left corner
-        Instantiate(waypointPrefab,new Vector2(-24 + bias,-24),new Quaternion(),transform);
-        positions[0,10] = -24 + bias;
-        positions[1,10] = -24;
-        //bottom left --> top left
-        for (int i = 0; i < 9;i++)
+    /// <summary>
+    /// Removes the current player from the game because they went bankrupt and starts the next players turn
+    /// </summary>
+    public void RemovePlayer()
+    {
+        Players.Remove(_currentPlayer);
+        Destroy(_currentPlayer.gameObject);
+        if (_currentPlayerIndex == Players.Count)
         {
-            change = i*((float)4.5);
-            Instantiate(waypointPrefab,new Vector2(-24 + bias,-18 + change),new Quaternion(),transform);
-            positions[0,i+11] = -24 + bias;
-            positions[1,i+11] = -18 + change;
+            _currentPlayerIndex = 0;
         }
-
-        //top left corner
-        Instantiate(waypointPrefab,new Vector2(-24 + bias,24),new Quaternion(),transform);
-        positions[0,20] = -24 + bias;
-        positions[1,20] = 24;
-        //top left --> top right
-        for (int i = 0; i < 9;i++)
+        
+        if (Players.Count == 1)
         {
-            change = i*((float)4.5);
-            Instantiate(waypointPrefab,new Vector2(-18 + change + bias,24),new Quaternion(),transform);
-            positions[0,i+21] = -18 + change + bias;
-            positions[1,i+21] = 24;
+            UIManager.Instance.ShowWinnerPanel(Players[0]);
         }
-
-        //top right corner
-        Instantiate(waypointPrefab,new Vector2(24 + bias,24),new Quaternion(),transform);
-        positions[0,30] = 24 + bias;
-        positions[1,30] = 24;
-        //top right --> bottom right
-        for (int i = 0; i < 9;i++)
+        else
         {
-            change = i*((float)4.5);
-            Instantiate(waypointPrefab,new Vector2(24 + bias,18 - change),new Quaternion(),transform);
-            positions[0,i+31] = 24 + bias;
-            positions[1,i+31] = 18 - change;
+            _currentPlayer = Players[_currentPlayerIndex];
+            _currentPlayer.StartTurn();
+        }
+    }
+    
+    /// <summary>
+    /// Gets a list of all the players who can auction, and starts from the current player
+    /// </summary>
+    public void StartAuction(Property property)
+    {
+        AuctionProperty = property;
+        AuctionPrice = BidAmount;
+        UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
+        UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
+
+        AudioManager.Instance.Play("auctionSound");
+        
+        _bidders = new List<Player>();
+        foreach (var player in Players)
+        {
+            if (!player.InJail && player.PassedGo && player.Money >= BidAmount)
+            {
+                _bidders.Add(player);
+            }
+        }
+        
+        _currentBidderIndex = _bidders.IndexOf(_currentPlayer);
+        if (_currentBidderIndex == -1)
+            _currentBidderIndex = 0;
+        _currentBidder = _bidders[_currentBidderIndex];
+        _currentBidder.BidDecision();
+    }
+
+    /// <summary>
+    /// Ends the current bidders turn and starts the next, removing them from the list of bidders if they chose to fold
+    /// or updating the auction price if they chose to bid
+    /// </summary>
+    /// <param name="folded">Indicates if the player chose to fold or not</param>
+    public void EndBid(bool folded)
+    {
+        UIManager.Instance.DisableAuctionButtons();
+        
+        if (folded)
+        {
+            _bidders.Remove(_currentBidder);
+            if (_currentBidderIndex == _bidders.Count)
+            {
+                _currentBidderIndex = 0;
+            }
+        }
+        else
+        {
+            AuctionPrice += BidAmount;
+            _currentBidderIndex = (_currentBidderIndex + 1) % _bidders.Count;
+        }
+        
+        _currentBidder = _bidders[_currentBidderIndex];
+        
+        if (_bidders.Count == 1)
+        {
+            UIManager.Instance.HideAuctionPrompt();
+            AudioManager.Instance.Play("buySound");
+            
+            _bidders[0].WinAuction(AuctionProperty, AuctionPrice);
+            _currentPlayer.CompleteTurn();
+        }
+        else
+        {
+            StartCoroutine(StartNextBid());
         }
     }
 
-    //This just assigns the space position to the different waypoints
-    private void giveSpacesPositions()
+    /// <summary>
+    /// Waits between each bid before updating and enabling the buttons for the next bidder
+    /// </summary>
+    private IEnumerator StartNextBid()
     {
-        for (int i = 0; i < 40; i++)
-        {
-            Tiles[i].setPosition(positions[0,i],positions[1,i]);
-        }
+        yield return _timeBetweenBids;
+        
+        UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
+        UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
+
+        _currentBidder.BidDecision();
+    }
+    
+    /// <summary>
+    /// Finds the index of a tile by its name.
+    /// </summary>
+    /// <param name="name">The name of the tile to find.</param>
+    /// <returns>The index of the tile with the specified name.</returns>
+    public int GetTileIndex(string name)
+    {
+        return Tiles.FindIndex(tile => tile.Name == name);
+    }
+
+    /// <summary>
+    /// Returns true if at least 2 players have passed go and are out of jail and have the minimum amount to bid
+    /// </summary>
+    /// <returns>Whether or not auctioning is possible</returns>
+    public bool CanAuction()
+    {
+        var passedGoCount = Players.Count(player => player.PassedGo);
+        var outOfJailCount = Players.Count(player => !player.InJail);
+        var minimumToBid = Players.Count(player => player.Money >= BidAmount);
+        return passedGoCount > 1 && outOfJailCount > 1 && minimumToBid > 1;
+    }
+    
+    public void GiveTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = property;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _bankInfoPanel);
+    }
+    
+    public void TakeTitleDeed(Property property)
+    {
+        TitleDeeds[property.PropertyNumber] = null;
+        UIManager.Instance.UpdateTitleDeedUI(TitleDeeds, _bankInfoPanel);
     }
 }
