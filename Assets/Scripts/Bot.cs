@@ -163,11 +163,14 @@ public class Bot : Player
             var sellableBuildingProperties = GetSellableBuildingProperties();
             foreach (var street in sellableBuildingProperties)
             {
-                street.SellBuilding();
-                if (Money >= 0)
+                while (!street.HasNoBuildings())
                 {
-                    CompleteTurn();
-                    yield break;
+                    street.SellBuilding();
+                    if (Money >= 0)
+                    {
+                        CompleteTurn();
+                        yield break;
+                    }
                 }
             }
         }

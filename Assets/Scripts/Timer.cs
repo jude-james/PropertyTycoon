@@ -14,6 +14,7 @@ public class Timer : MonoBehaviour
     
     private void Start()
     {
+        HasEnded = false;
         _startTime = Menu.GetTime();
         if (_startTime == 0)
         {
