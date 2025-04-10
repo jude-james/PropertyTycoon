@@ -9,7 +9,7 @@ using Action = Tiles.Action;
 /// </summary>
 public class DataReader
 {
-    private const string Path = "Assets/CSVFiles/";
+    private const string Path = "/CSVFiles/";
     private const string BoardDataFileName = "PropertyTycoonBoardDataImproved(Sheet1).csv";
     private const string CardDataFileName = "PropertyTycoonCardDataImproved(Sheet1).csv";
     
@@ -51,7 +51,7 @@ public class DataReader
         Properties = new List<Property>();
         var propertyNumber = 0;
 
-        var boardDataMatrix = CSVParser.ReadCSV(Path + BoardDataFileName);
+        var boardDataMatrix = CSVParser.ReadCSV(Application.streamingAssetsPath + Path + BoardDataFileName);
         
         for (int i = 0; i < boardTiles.childCount; i++)
         {
@@ -191,7 +191,7 @@ public class DataReader
 
         var actionCards = new Queue<ActionCard>();
         
-        var cardDataMatrix = CSVParser.ReadCSV(Path + CardDataFileName);
+        var cardDataMatrix = CSVParser.ReadCSV(Application.streamingAssetsPath + Path + CardDataFileName);
 
         for (int i = startColumn; i <= endColumn; i++)
         {

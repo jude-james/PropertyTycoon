@@ -22447,7 +22447,7 @@ MonoBehaviour:
     <Volume>k__BackingField: 1
   - <Name>k__BackingField: winnerSong
     <Clip>k__BackingField: {fileID: 8300000, guid: e3210260156ab40f5ae9c6cd81090488, type: 3}
-    <Volume>k__BackingField: 0.1
+    <Volume>k__BackingField: 0.25
   - <Name>k__BackingField: payRentSound
     <Clip>k__BackingField: {fileID: 8300000, guid: 315d1b326685f48f7b3b5a39dc2be0bc, type: 3}
     <Volume>k__BackingField: 1
@@ -22465,7 +22465,7 @@ MonoBehaviour:
     <Volume>k__BackingField: 1
   - <Name>k__BackingField: bankruptSound
     <Clip>k__BackingField: {fileID: 8300000, guid: 7cc52ba1b24964ebfbddfe8112ca1794, type: 3}
-    <Volume>k__BackingField: 1
+    <Volume>k__BackingField: 0.5
   - <Name>k__BackingField: taxSound
     <Clip>k__BackingField: {fileID: 8300000, guid: 3dc506e5f96e748eba92a7b9d8094b17, type: 3}
     <Volume>k__BackingField: 0.2

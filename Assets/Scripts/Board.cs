@@ -77,6 +77,12 @@ public class Board : Singleton<Board>
 
         Players = new List<Player>();
         var menuPlayers = Menu.GetMenuPlayers();
+        if (menuPlayers == null)
+        {
+            Debug.LogError("Couldn't get players from menu. Try starting from menu scene.");
+            return;
+        }
+        
         foreach (var menuPlayer in menuPlayers)
         {
             var playerObj = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity);
