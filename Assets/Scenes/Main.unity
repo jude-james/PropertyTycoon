@@ -41552,7 +41552,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Chose streets to build houses and hotels
+  m_text: Choose streets to build houses and hotels
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 87cbaa137e0d349558b27e157dabaa44, type: 2}
   m_sharedMaterial: {fileID: 6634363515830005068, guid: 87cbaa137e0d349558b27e157dabaa44, type: 2}
@@ -58352,7 +58352,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Chose streets to sell their houses and hotels
+  m_text: Choose streets to sell their houses and hotels
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 87cbaa137e0d349558b27e157dabaa44, type: 2}
   m_sharedMaterial: {fileID: 6634363515830005068, guid: 87cbaa137e0d349558b27e157dabaa44, type: 2}
