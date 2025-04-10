@@ -114,10 +114,10 @@ public class Board : Singleton<Board>
         Players.Add(pl1);
         Players.Add(pl2);
         Players.Add(pl3);
+        */
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
-        */
     }
 
     /// <summary>
