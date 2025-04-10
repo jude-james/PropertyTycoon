@@ -315,6 +315,8 @@ public class UIManager : Singleton<UIManager>
 
     public void ShowWinnerPanel(Player player)
     {
+        AudioManager.Instance.Play("winnerSong");
+        
         _winnerPanelNameText.SetText(player.Name);
         _winnerPanelText.SetText(player.Name + " has won the game!");
         _winnerPanelImage.sprite = player.Sprite;

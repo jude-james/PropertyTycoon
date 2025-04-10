@@ -22,7 +22,34 @@ public class Bot : Player
         // Bot can choose to 'click' end turn, or at this point, it can choose the other options:
         // build, sell buildings, mortgage, unmortgage and sell property
         
-        // For this simple bot, it will always end its turn
+        // For this simple bot, it will unmortgage any properties it can and then build on any properties it can
+        if (CanUnmortgage())
+        {
+            var unmortgageableProperties = GetUnmortgageableProperties();
+            foreach (var property in unmortgageableProperties)
+            {
+                property.Unmortgage();
+                // once unmortgaged, check again that the bot has enough money to continue
+                if (!CanUnmortgage()) 
+                {
+                    break;
+                }
+            }
+        }
+
+        if (CanBuild())
+        {
+            var buildableProperties = GetBuildableProperties();
+            foreach (var property in buildableProperties)
+            {
+                property.Build();
+                if (!CanBuild())
+                {
+                    break;
+                }
+            }
+        }
+        
         OnEndTurn();
     }
 

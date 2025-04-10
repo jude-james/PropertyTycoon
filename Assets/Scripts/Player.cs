@@ -144,6 +144,7 @@ public class Player : MonoBehaviour
             _doubleCount++;
         }
         
+        AudioManager.Instance.Play("diceRollSound");
         yield return UIManager.Instance.AnimateDiceRoll(_diceRoll1, _diceRoll2);
         yield return _reactionTime;
 
@@ -210,12 +211,14 @@ public class Player : MonoBehaviour
         for (int i = Maths.Mod(_currentTileIndex + step,tileCount); i != Maths.Mod(_newTileIndex + step,tileCount); i = (i + step + tileCount) % tileCount)
         {
             yield return MoveBetweenPositions(Board.Instance.Tiles[i].transform.position);
+            AudioManager.Instance.Play("tokenSound");
             
             if (i != _newTileIndex) // Don't pause between tile if on the last tile
                 yield return _pauseBetweenTileTime;
 
             if (i == Board.Instance.GetTileIndex("Go"))
             {
+                AudioManager.Instance.Play("passedGoSound");
                 PassedGo = true;
                 GiveMoney(PassedGoAmount);
             }
@@ -351,6 +354,7 @@ public class Player : MonoBehaviour
 
         if (showPopup)
         {
+            AudioManager.Instance.Play("goToJailSound");
             UIManager.Instance.ShowGoToJailPopup();
             yield return _jailPopupTime; 
             UIManager.Instance.HideGoToJailPopup();
@@ -380,6 +384,8 @@ public class Player : MonoBehaviour
         InJail = false;
         RoundsInJail = 0;
 
+        AudioManager.Instance.Play("leaveJailSound");
+        
         var justVisitingIndex = Board.Instance.GetTileIndex("Jail/Just visiting");
         SetNewTileIndex(justVisitingIndex);
         yield return MoveBetweenPositions(Board.Instance.Tiles[justVisitingIndex].transform.position);
@@ -468,6 +474,8 @@ public class Player : MonoBehaviour
         Board.Instance.TakeTitleDeed(property);
         
         property.OwnedBy = this;
+        
+        AudioManager.Instance.Play("buySound");
         
         CompleteTurn();
     }
@@ -794,6 +802,7 @@ public class Player : MonoBehaviour
             }
         }
         
+        AudioManager.Instance.Play("bankruptSound");
         UIManager.Instance.ShowBankruptPopup();
         yield return _bankruptPopupTime;
         UIManager.Instance.HideBankruptPopup();
@@ -907,7 +916,7 @@ public class Player : MonoBehaviour
         return GetMortgageableProperties().Count > 0;
     }
 
-    private bool CanUnmortgage()
+    protected bool CanUnmortgage()
     {
         return GetUnmortgageableProperties().Count > 0;
     }

@@ -137,6 +137,8 @@ namespace Tiles
                 InBuildSelection = false;
             }
             
+            AudioManager.Instance.Play("buildSound");
+            
             // Once player builds a house, check they have enough money to build other houses
             foreach (var street in OwnedBy.TitleDeeds.OfType<Street>())
             {
@@ -180,6 +182,8 @@ namespace Tiles
                     InSellBuildingsSelection = false;
                 }
             }
+            
+            AudioManager.Instance.Play("sellBuildingsSound");
         }
         
         /// <summary>

@@ -103,6 +103,7 @@ namespace Tiles
                 }
                 else
                 {
+                    AudioManager.Instance.Play("forSaleSound");
                     player.ForSaleDecision(this);
                 }
             }
@@ -123,6 +124,7 @@ namespace Tiles
 
         private IEnumerator PayRentCoroutine(Player player)
         {
+            AudioManager.Instance.Play("payRentSound");
             UIManager.Instance.ShowPayRentPopup(CurrentRent, OwnedBy.Name, OwnedBy.Sprite);
             yield return _payRentPopupTime;
             UIManager.Instance.HidePayRentPopup();
@@ -145,7 +147,7 @@ namespace Tiles
         /// <summary>
         /// Unmortgages this property
         /// </summary>
-        private void Unmortgage()
+        public void Unmortgage()
         {
             Mortgaged = false;
             OwnedBy.TakeMoney(UnmortgagedValue);

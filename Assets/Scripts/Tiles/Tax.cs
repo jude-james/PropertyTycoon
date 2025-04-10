@@ -24,6 +24,7 @@ namespace Tiles
         
         public override void OnLanded(Player player)
         {
+            AudioManager.Instance.Play("taxSound");
             player.TakeMoney(_amount);
             player.CompleteTurn();
         }

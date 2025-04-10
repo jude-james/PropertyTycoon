@@ -77,6 +77,7 @@ public class Board : Singleton<Board>
 
         Players = new List<Player>();
         
+        /*
         var menuPlayers = Menu.GetMenuPlayers();
         foreach (var menuPlayer in menuPlayers)
         {
@@ -95,10 +96,11 @@ public class Board : Singleton<Board>
             
             Players.Add(player);
         }
+        */
         
         
         // Manually assigning players for testing purposes
-        /*
+        
         var pl1 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
         pl1.SetSprite(tokens[0]);
         pl1.Name = tokens[0].name;
@@ -114,7 +116,7 @@ public class Board : Singleton<Board>
         Players.Add(pl1);
         Players.Add(pl2);
         Players.Add(pl3);
-        */
+        
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
@@ -198,6 +200,8 @@ public class Board : Singleton<Board>
         UIManager.Instance.UpdateBidButtonAmount(AuctionPrice, BidAmount);
         UIManager.Instance.UpdateAuctionPrice(AuctionPrice);
 
+        AudioManager.Instance.Play("auctionSound");
+        
         _bidders = new List<Player>();
         foreach (var player in Players)
         {
@@ -242,6 +246,7 @@ public class Board : Singleton<Board>
         if (_bidders.Count == 1)
         {
             UIManager.Instance.HideAuctionPrompt();
+            AudioManager.Instance.Play("buySound");
             
             _bidders[0].WinAuction(AuctionProperty, AuctionPrice);
             _currentPlayer.CompleteTurn();

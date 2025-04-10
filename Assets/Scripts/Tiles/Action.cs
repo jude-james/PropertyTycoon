@@ -49,6 +49,8 @@ namespace Tiles
             if (actionCard == null) yield break;
             
             SetCard();
+            AudioManager.Instance.Play("actionCardSound");
+            
             var description = actionCard.Description.Substring(1, actionCard.Description.Length - 2).ToUpper();
             _cardDescription.SetText(description);
 
