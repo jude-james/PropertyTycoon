@@ -13,8 +13,6 @@ using Random = UnityEngine.Random;
 /// </summary>
 public class Player : MonoBehaviour
 {
-    public int moveTest;
-    
     private static Player _activePlayer;
     protected static Player CurrentBidder;
 
@@ -49,7 +47,7 @@ public class Player : MonoBehaviour
     private int _newTileIndex;
     
     private const int PassedGoAmount = 200;
-    public bool PassedGo { get; private set; } = true; // TODO change to false once finished testing
+    public bool PassedGo { get; private set; }
     
     private const int MoveSpeed = 10;
     
@@ -155,7 +153,6 @@ public class Player : MonoBehaviour
         else
         {
             ShiftTileIndex(DiceRoll);
-            //ShiftTileIndex(moveTest);
             MoveToTile(Direction.Shortest);
         }
     }

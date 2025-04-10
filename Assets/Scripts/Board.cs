@@ -76,8 +76,6 @@ public class Board : Singleton<Board>
         _freeParkingSumText = UIManager.Instance.FreeParkingInfoPanel.transform.GetChild(2).GetComponent<TMP_Text>();
 
         Players = new List<Player>();
-        
-        /*
         var menuPlayers = Menu.GetMenuPlayers();
         foreach (var menuPlayer in menuPlayers)
         {
@@ -96,27 +94,6 @@ public class Board : Singleton<Board>
             
             Players.Add(player);
         }
-        */
-        
-        
-        // Manually assigning players for testing purposes
-        
-        var pl1 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
-        pl1.SetSprite(tokens[0]);
-        pl1.Name = tokens[0].name;
-        
-        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
-        pl2.SetSprite(tokens[1]);
-        pl2.Name = tokens[1].name;
-        
-        var pl3 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
-        pl3.SetSprite(tokens[2]);
-        pl3.Name = tokens[2].name;
-        
-        Players.Add(pl1);
-        Players.Add(pl2);
-        Players.Add(pl3);
-        
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
