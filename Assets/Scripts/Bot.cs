@@ -73,6 +73,9 @@ public class Bot : Player
         
         // Bot can choose to buy the property or auction it
         
+        // This function is called when it is guaranteed the player can either buy, auction or both,
+        // but not neither, the bot must check this
+        
         // In this simple version, the bot will always buy if it can, if it can't it will then auction
         if (Money >= property.Cost)
         {

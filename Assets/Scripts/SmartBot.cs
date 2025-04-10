@@ -192,13 +192,21 @@ public class SmartBot : Player
         buyWorker?.Dispose();
         inputTensor.Dispose();
         Debug.Log(output);
-        if (Money >= property.Cost && output > 0.565)
+
+        var canBuy = Money >= property.Cost;
+        if (Board.Instance.CanAuction() && canBuy) // if both, the smart bot can make a choice
         {
-            OnBuy();
+            if (output > 0.565)
+                OnBuy();
+            else
+                OnAuction();
         }
-        else
+        else // otherwise it is forced
         {
-            OnAuction();
+            if (canBuy)
+                OnBuy();
+            else
+                OnAuction();
         }
     }
 
