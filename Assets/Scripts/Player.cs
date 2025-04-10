@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
     private readonly WaitForSeconds _jailPopupTime = new(1.5f);
     private readonly WaitForSeconds _bankruptPopupTime = new(3f);
     
-    public void Start()
+    protected void Start()
     {
         _animator = GetComponent<Animator>();
 
@@ -267,7 +267,7 @@ public class Player : MonoBehaviour
             }
             else
             {
-                UIManager.Instance.ShowRaiseFundsDialog();
+                UIManager.Instance.ShowRaiseFundsDialog(this);
                 RaiseFundsDecision();
             }
         }
@@ -742,6 +742,34 @@ public class Player : MonoBehaviour
         var propertyFunds = GetSellableProperties().Sum(property => property.Mortgaged ? property.MortgagedValue : property.Cost);
         var totalFunds = buildingFunds + propertyFunds;
         return totalFunds < -Money;
+    }
+
+    /// <summary>
+    /// Calculates the total value of this player and all their assets
+    /// </summary>
+    /// <returns> The value of the players cash, properties and buildings</returns>
+    public int GetTotalValue()
+    {
+        var totalValue = 0;
+
+        totalValue += Money;
+        
+        foreach (var property in TitleDeeds)
+        {
+            if (property == null) continue;
+            
+            if (property.Mortgaged)
+                totalValue += property.MortgagedValue;
+            else
+                totalValue += property.Cost;
+
+            if (property is Street street)
+            {
+                totalValue += street.GetBuildingValue();
+            }
+        }
+        
+        return totalValue;
     }
     
     // @cond

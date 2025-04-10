@@ -124,6 +124,8 @@ public class UIManager : Singleton<UIManager>
     private TMP_Text _winnerPanelNameText;
     private TMP_Text _winnerPanelText;
     private Image _winnerPanelImage;
+
+    private TMP_Text _raiseFundsDialogText;
     
     private readonly WaitForSeconds _diceRollTime = new(1.5f);
     private const float MoneyChangeDuration = 1.5f;
@@ -181,6 +183,8 @@ public class UIManager : Singleton<UIManager>
         _winnerPanelNameText = winnerPanel.transform.GetChild(1).GetComponent<TMP_Text>();
         _winnerPanelImage = winnerPanel.transform.GetChild(2).GetComponent<Image>();
         _winnerPanelText = winnerPanel.transform.GetChild(3).GetComponent<TMP_Text>();
+
+        _raiseFundsDialogText = raiseFundsDialogPanel.GetComponentInChildren<TMP_Text>();
     }
 
     public void ShowRollDicePrompt() => rollDicePanel.SetActive(true);
@@ -300,7 +304,13 @@ public class UIManager : Singleton<UIManager>
     public void ShowBotDecisionDialog() => botDecisionDialogPanel.SetActive(true);
     public void HideBotDecisionDialog() => botDecisionDialogPanel.SetActive(false);
 
-    public void ShowRaiseFundsDialog() => raiseFundsDialogPanel.SetActive(true);
+    public void ShowRaiseFundsDialog(Player player)
+    {
+        _raiseFundsDialogText.SetText(player.GetType() == typeof(Player)
+            ? "Player must raise funds!"
+            : "Bot must raise funds!");
+        raiseFundsDialogPanel.SetActive(true);
+    }
     public void HideRaiseFundsDialog() => raiseFundsDialogPanel.SetActive(false);
 
     public void ShowWinnerPanel(Player player)

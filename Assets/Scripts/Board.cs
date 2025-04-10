@@ -1,9 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Tiles;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -95,9 +95,7 @@ public class Board : Singleton<Board>
             
             Players.Add(player);
         }
-
-        var time = Menu.GetTime();
-        // TODO timer
+        
         
         // Manually assigning players for testing purposes
         /*
@@ -105,7 +103,7 @@ public class Board : Singleton<Board>
         pl1.SetSprite(tokens[0]);
         pl1.Name = tokens[0].name;
         
-        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Player>();
+        var pl2 = Instantiate(playerPrefab, Tiles[0].transform.position, Quaternion.identity).AddComponent<Bot>();
         pl2.SetSprite(tokens[1]);
         pl2.Name = tokens[1].name;
         
@@ -116,18 +114,25 @@ public class Board : Singleton<Board>
         Players.Add(pl1);
         Players.Add(pl2);
         Players.Add(pl3);
-        */
         
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
+        */
     }
 
     /// <summary>
-    /// Ends the current players turn and starts the next players turn.
+    /// Ends the current players turn and starts the next players turn, unless the timer has reached zero
     /// </summary>
     public void EndTurn()
     {
-        StartCoroutine(StartNextTurn());
+        if (Timer.HasEnded)
+        {
+            GetWinner();
+        }
+        else
+        {
+            StartCoroutine(StartNextTurn());
+        }
     }
     
     /// <summary>
@@ -139,6 +144,25 @@ public class Board : Singleton<Board>
         _currentPlayerIndex = (_currentPlayerIndex + 1) % Players.Count;
         _currentPlayer = Players[_currentPlayerIndex];
         _currentPlayer.StartTurn();
+    }
+
+    /// <summary>
+    /// Finds the player with the highest value and declares them the winner
+    /// </summary>
+    private void GetWinner()
+    {
+        var highestValue = 0;
+        var highestValuePlayer = Players[0];
+        foreach (var player in Players)
+        {
+            var value = player.GetTotalValue();
+            if (value > highestValue)
+            {
+                highestValue = value;
+                highestValuePlayer = player;
+            }
+        }
+        UIManager.Instance.ShowWinnerPanel(highestValuePlayer);
     }
 
     /// <summary>

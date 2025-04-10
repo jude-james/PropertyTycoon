@@ -146,8 +146,6 @@ namespace Tiles
                     street.InBuildSelection = false;
                 }
             }
-            
-            // TODO update selection if difference is more than 1...
         }
 
         /// <summary>
@@ -189,7 +187,12 @@ namespace Tiles
         /// </summary>
         public int GetBuildingValue()
         {
-            return CurrentHouses * HouseCost + CurrentHotels * HotelCost;
+            if (HasMaxBuildings())
+            {
+                return CurrentHotels * HotelCost;
+            }
+            
+            return CurrentHouses * HouseCost;
         }
 
         public bool HasMaxBuildings()
