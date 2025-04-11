@@ -28,11 +28,10 @@ public class Bot : Player
             var unmortgageableProperties = GetUnmortgageableProperties();
             foreach (var property in unmortgageableProperties)
             {
-                property.Unmortgage();
                 // once unmortgaged, check again that the bot has enough money to continue
-                if (!CanUnmortgage()) 
+                if (Money >= property.UnmortgagedValue)
                 {
-                    break;
+                    property.Unmortgage();
                 }
             }
         }
@@ -42,10 +41,9 @@ public class Bot : Player
             var buildableProperties = GetBuildableProperties();
             foreach (var property in buildableProperties)
             {
-                property.Build();
-                if (!CanBuild())
+                if (Money >= property.HouseCost)
                 {
-                    break;
+                    property.Build();
                 }
             }
         }
