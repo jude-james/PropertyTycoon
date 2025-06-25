@@ -20,7 +20,7 @@ A fully featured property trading board game, inspired by Monopoly. Submission f
 
 ## Features
 
-- Play against Bots or with up to 6 players
+- Play against bots or with up to 6 players
 - AI agent using a neural network
 - Custom artwork and music
 - Fully editable place names and cards
@@ -36,12 +36,8 @@ A fully featured property trading board game, inspired by Monopoly. Submission f
 
 ## Download
 
-Download our implementation of Property Tycoon for MacOS and Windows here.
+Download our implementation of Property Tycoon for Windows and MacOS here:
 
-### Windows
-
-TODO Link here
-
-### MacOS
-
-TODO Link here
+- [Windows](https://github.com/jude-james/PropertyTycoon/releases/download/1.0/Property.Tycoon.Windows.zip)
+  
+- [MacOS Apple Silicon](https://github.com/jude-james/PropertyTycoon/releases/download/1.0/Property.Tycoon.MacOS.ARM.zip)
